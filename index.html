@@ -159,25 +159,16 @@
                         >
                             <option v-for="sem in academicSessions" :key="sem" :value="sem">{{ sem }}</option>
                         </select>
+                        
+                        <!-- UNIFIED SESI AKADEMIK MANAGEMENT BUTTON -->
                         <button 
-                            @click="showAddSessionModal = true"
-                            class="p-2.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-lg text-slate-755"
-                            title="Tambah Sesi Akademik Baru"
+                            @click="showManageSessionsModal = true"
+                            class="px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-lg text-slate-700 flex items-center gap-1.5 text-xs font-bold shrink-0 transition"
+                            title="Urus Sesi Akademik (Tambah, Padam, Susun Kedudukan)"
                         >
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                            </svg>
+                            ⚙️ Urus Sesi
                         </button>
-                        <!-- BUTANG EDIT SESI AKADEMIK SEMASA -->
-                        <button 
-                            @click="openEditSessionModal"
-                            class="p-2.5 bg-amber-50 hover:bg-amber-100 border border-amber-300 rounded-lg text-amber-700"
-                            title="Edit Sesi Akademik Semasa"
-                        >
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
-                            </svg>
-                        </button>
+
                         <!-- BUTANG TAMBAH FAKULTI / PUSAT -->
                         <button 
                             @click="showAddFacultyModal = true"
@@ -754,12 +745,12 @@
         <div v-if="showEditSessionModal" class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 flex items-center justify-center p-4">
             <div class="bg-white rounded-xl shadow-xl border p-6 max-w-md w-full space-y-4">
                 <div class="flex justify-between items-center border-b pb-2">
-                    <h3 class="font-bold text-slate-800">Edit Nama Sesi Akademik Semasa</h3>
+                    <h3 class="font-bold text-slate-800">Edit Nama Sesi Akademik</h3>
                     <button @click="showEditSessionModal = false" class="text-slate-400">✕</button>
                 </div>
                 <div class="space-y-3">
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Nama Sesi</label>
+                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Nama Sesi Baru</label>
                         <input type="text" v-model="editSessionName" class="w-full bg-slate-50 border rounded-lg p-2.5 text-sm font-semibold focus:ring-emerald-500" />
                     </div>
                 </div>
@@ -817,6 +808,98 @@
                 <div class="flex justify-end gap-2">
                     <button @click="showEditFacultyModal = false" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 rounded text-xs font-bold text-slate-700">Batal</button>
                     <button @click="updateFaculty" class="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded text-xs font-bold uppercase tracking-wider">Simpan Perubahan</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL URUS SESI AKADEMIK (TAMBAH, PADAM, SUNTING & SUSUN KEDUDUKAN) -->
+        <div v-if="showManageSessionsModal" class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 flex items-center justify-center p-4">
+            <div class="bg-white rounded-xl shadow-xl border p-6 max-w-2xl w-full space-y-4">
+                <div class="flex justify-between items-center border-b pb-2">
+                    <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
+                        <span>📅</span> Pengurusan Sesi Akademik & Semester
+                    </h3>
+                    <button @click="showManageSessionsModal = false" class="text-slate-400 hover:text-slate-600">✕</button>
+                </div>
+                
+                <!-- Bahagian Tambah Sesi Akademik Baru -->
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
+                    <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Tambah Sesi Akademik Baru</h4>
+                    <div class="flex flex-col sm:flex-row gap-2">
+                        <input 
+                            type="text" 
+                            v-model="newSessionName" 
+                            placeholder="Contoh: 2026/2027 - SEM 1" 
+                            class="flex-1 bg-white border rounded-lg p-2 text-sm font-semibold focus:ring-emerald-500" 
+                        />
+                        <button 
+                            @click="addNewAcademicSession" 
+                            class="px-4 py-2 bg-emerald-750 hover:bg-emerald-800 border border-emerald-300 bg-emerald-50 text-emerald-800 rounded-lg text-xs font-bold uppercase tracking-wider shrink-0 transition"
+                        >
+                            Tambah Sesi
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Senarai Sesi dengan Fungsi Edit, Susun Atur, Padam -->
+                <div class="space-y-2">
+                    <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Senarai Sesi Terdaftar (Susun Kedudukan Sesi)</h4>
+                    <div class="max-h-[35vh] overflow-y-auto space-y-2 pr-1">
+                        <div v-for="(sem, index) in academicSessions" :key="sem" class="p-3 bg-white rounded-lg border border-slate-200 flex items-center justify-between gap-3 shadow-xs">
+                            <div class="flex items-center gap-3">
+                                <!-- Indikator Sesi Aktif -->
+                                <span v-if="selectedSemester === sem" class="w-2.5 h-2.5 bg-emerald-500 rounded-full" title="Sesi Aktif Semasa"></span>
+                                <span v-else class="w-2.5 h-2.5 bg-slate-300 rounded-full"></span>
+                                
+                                <span class="font-bold text-slate-800 text-sm">{{ sem }}</span>
+                            </div>
+                            
+                            <!-- Panel Kawalan Sesi -->
+                            <div class="flex items-center gap-1">
+                                <!-- Butang Susun Naik (Move Up) -->
+                                <button 
+                                    @click="moveSession(index, -1)" 
+                                    :disabled="index === 0"
+                                    class="p-1.5 bg-slate-100 hover:bg-slate-200 disabled:opacity-30 rounded text-slate-700 text-xs font-bold transition-all"
+                                    title="Susun Naik"
+                                >
+                                    ▲
+                                </button>
+                                <!-- Butang Susun Turun (Move Down) -->
+                                <button 
+                                    @click="moveSession(index, 1)" 
+                                    :disabled="index === academicSessions.length - 1"
+                                    class="p-1.5 bg-slate-100 hover:bg-slate-200 disabled:opacity-30 rounded text-slate-700 text-xs font-bold transition-all"
+                                    title="Susun Turun"
+                                >
+                                    ▼
+                                </button>
+                                
+                                <div class="w-[1px] h-6 bg-slate-200 mx-1"></div>
+                                
+                                <!-- Butang Edit Sesi -->
+                                <button 
+                                    @click="openInlineEditSession(sem)" 
+                                    class="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-700 text-xs font-bold rounded transition-all"
+                                    title="Sunting Sesi"
+                                >
+                                    ✏️ Edit
+                                </button>
+                                <!-- Butang Padam Sesi -->
+                                <button 
+                                    @click="deleteAcademicSession(sem)" 
+                                    class="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 text-xs font-bold rounded transition-all"
+                                    title="Padam Sesi"
+                                >
+                                    🗑️ Padam
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-end pt-2 border-t">
+                    <button @click="showManageSessionsModal = false" class="px-5 py-2 bg-slate-200 hover:bg-slate-300 rounded-lg text-xs font-bold text-slate-700">Tutup</button>
                 </div>
             </div>
         </div>
@@ -908,7 +991,7 @@
                 // Indeks Kursus Aktif pada Borang
                 const activeFormCourseIndex = ref(0);
 
-                // Senarai Sesi Akademik yang boleh ditambah & diedit
+                // Senarai Sesi Akademik yang boleh ditambah, disusun & diedit
                 const academicSessions = ref(["2025/2026 - SEM 2", "2025/2026 - SEM 1", "2024/2025 - SEM 2", "2024/2025 - SEM 1"]);
                 const showAddSessionModal = ref(false);
                 const newSessionName = ref("");
@@ -916,10 +999,12 @@
                 // Modals untuk Edit Sesi & Tambah Fakulti & Edit Folder
                 const showEditSessionModal = ref(false);
                 const editSessionName = ref("");
+                const sessionBeingEdited = ref(""); // Menyimpan rujukan sesi asal semasa suntingan
                 const showAddFacultyModal = ref(false);
                 const newFacultyId = ref("");
                 const newFacultyName = ref("");
                 const showEditFoldersModal = ref(false);
+                const showManageSessionsModal = ref(false);
 
                 // Edit Fakulti khusus
                 const showEditFacultyModal = ref(false);
@@ -1116,7 +1201,7 @@
 
                 // Fungsi Menangani Penukaran Semester Sesi Akademik
                 const handleSemesterChange = () => {
-                    showToast(`Beralih ke paparan Sesi: ${selectedSemester.value}`, "info");
+                    showToast(`Beralih ke draf Sesi: ${selectedSemester.value}`, "info");
                 };
 
                 // Memantau penukaran Semester secara Dinamik dan mengasingkan storan data
@@ -1132,26 +1217,34 @@
 
                 // Tambah Sesi Baru
                 const addNewAcademicSession = () => {
-                    if (!newSessionName.value) {
+                    if (!newSessionName.value.trim()) {
                         showCustomAlert("Input Tidak Sah", "Sila masukkan nama sesi!");
                         return;
                     }
-                    if (academicSessions.value.includes(newSessionName.value)) {
+                    const newSession = newSessionName.value.trim();
+                    if (academicSessions.value.includes(newSession)) {
                         showCustomAlert("Sesi Sedia Ada", "Sesi Akademik ini sudah sedia ada!");
                         return;
                     }
-                    academicSessions.value.unshift(newSessionName.value);
+                    academicSessions.value.unshift(newSession);
                     localStorage.setItem("kias_academic_sessions", JSON.stringify(academicSessions.value));
                     
-                    selectedSemester.value = newSessionName.value;
-                    showAddSessionModal.value = false;
+                    selectedSemester.value = newSession;
                     newSessionName.value = "";
                     showToast("Sesi Akademik baharu berjaya didaftarkan.");
                 };
 
-                // Buka Modal Sunting Sesi Semasa
+                // Buka Modal Sunting Sesi daripada senarai urus sesi
+                const openInlineEditSession = (sem) => {
+                    editSessionName.value = sem;
+                    sessionBeingEdited.value = sem;
+                    showEditSessionModal.value = true;
+                };
+
+                // Buka Modal Sunting Sesi Semasa secara am
                 const openEditSessionModal = () => {
                     editSessionName.value = selectedSemester.value;
+                    sessionBeingEdited.value = selectedSemester.value;
                     showEditSessionModal.value = true;
                 };
 
@@ -1162,9 +1255,14 @@
                         return;
                     }
                     
-                    const oldSession = selectedSemester.value;
+                    const oldSession = sessionBeingEdited.value || selectedSemester.value;
                     const newSession = editSessionName.value.trim();
                     
+                    if (oldSession !== newSession && academicSessions.value.includes(newSession)) {
+                        showCustomAlert("Sesi Sedia Ada", "Sesi Akademik dengan nama baru ini sudah wujud!");
+                        return;
+                    }
+
                     const index = academicSessions.value.indexOf(oldSession);
                     if (index !== -1) {
                         // Kemaskini nama dalam senarai sesi
@@ -1180,15 +1278,69 @@
                         if (tempFac) localStorage.setItem("kias_dynamic_faculties_" + newSession, tempFac);
                         if (tempFol) localStorage.setItem("kias_folder_settings_" + newSession, tempFol);
                         
-                        // Hapuskan bekas draf sesi yang lama
-                        localStorage.removeItem("kias_3state_lecturers_v2_" + oldSession);
-                        localStorage.removeItem("kias_dynamic_faculties_" + oldSession);
-                        localStorage.removeItem("kias_folder_settings_" + oldSession);
+                        // Hapuskan bekas draf sesi yang lama jika nama berubah
+                        if (oldSession !== newSession) {
+                            localStorage.removeItem("kias_3state_lecturers_v2_" + oldSession);
+                            localStorage.removeItem("kias_dynamic_faculties_" + oldSession);
+                            localStorage.removeItem("kias_folder_settings_" + oldSession);
+                        }
                         
-                        selectedSemester.value = newSession;
+                        if (selectedSemester.value === oldSession) {
+                            selectedSemester.value = newSession;
+                        } else {
+                            loadSessionData(selectedSemester.value);
+                        }
+                        
                         showEditSessionModal.value = false;
                         showToast("Nama Sesi Akademik semasa berjaya dikemaskini.");
                     }
+                };
+
+                // FUNGSI MEMUTAR / MENYUSUN KEDUDUKAN SESI (Sorting)
+                const moveSession = (index, direction) => {
+                    const targetIndex = index + direction;
+                    if (targetIndex < 0 || targetIndex >= academicSessions.value.length) return;
+                    
+                    // Swapping elements
+                    const temp = academicSessions.value[index];
+                    academicSessions.value[index] = academicSessions.value[targetIndex];
+                    academicSessions.value[targetIndex] = temp;
+                    
+                    localStorage.setItem("kias_academic_sessions", JSON.stringify(academicSessions.value));
+                    showToast("Kedudukan Sesi Akademik berjaya diubah suai.");
+                };
+
+                // FUNGSI MEMADAM SESI AKADEMIK (Delete)
+                const deleteAcademicSession = (sessionName) => {
+                    if (academicSessions.value.length <= 1) {
+                        showCustomAlert("Padam Sesi Dihalang", "Sistem memerlukan sekurang-kurangnya satu sesi akademik aktif untuk berfungsi.");
+                        return;
+                    }
+                    
+                    showCustomConfirm(
+                        "Padam Sesi Akademik", 
+                        `Adakah anda pasti mahu memadam sesi akademik "${sessionName}"? Semua data pensyarah, senarai fakulti, dan folder standard yang disimpan di bawah sesi ini akan dihapuskan sepenuhnya daripada memori pelayar secara kekal!`, 
+                        () => {
+                            // Buang sesi akademik daripada senarai sesi
+                            academicSessions.value = academicSessions.value.filter(s => s !== sessionName);
+                            localStorage.setItem("kias_academic_sessions", JSON.stringify(academicSessions.value));
+
+                            // Buang storan-storan yang dikaitkan dengan sesi ini secara kekal
+                            localStorage.removeItem("kias_3state_lecturers_v2_" + sessionName);
+                            localStorage.removeItem("kias_dynamic_faculties_" + sessionName);
+                            localStorage.removeItem("kias_folder_settings_" + sessionName);
+
+                            // Sekiranya sesi yang dipadam merupakan sesi aktif semasa, beralih ke sesi pertama yang sedia ada
+                            if (selectedSemester.value === sessionName) {
+                                selectedSemester.value = academicSessions.value[0];
+                            } else {
+                                // Muatkan semula data sesi aktif semasa sekiranya ia tidak berubah
+                                loadSessionData(selectedSemester.value);
+                            }
+
+                            showToast(`Sesi akademik "${sessionName}" berjaya dipadamkan beserta seluruh datanya.`, "warning");
+                        }
+                    );
                 };
 
                 // Tambah Draf Item Folder Baru
@@ -1584,7 +1736,7 @@
 
                 const disconnectDatabase = () => {
                     dbSettings.value.connected = false;
-                    showToast("Sambungan Google Sheet diputuskan.", "info");
+                    showToast("Sambungan diputuskan.", "info");
                 };
 
                 // --- PROSES CSV: IMPORT & TEMPLAT BERKELOMPOK ---
@@ -1973,6 +2125,7 @@
                     dynamicFaculties,
                     showEditSessionModal,
                     editSessionName,
+                    sessionBeingEdited,
                     openEditSessionModal,
                     updateAcademicSession,
                     showAddFacultyModal,
@@ -1990,7 +2143,11 @@
                     editingFaculty,
                     openEditFacultyModal,
                     updateFaculty,
-                    deleteFaculty
+                    deleteFaculty,
+                    showManageSessionsModal,
+                    moveSession,
+                    deleteAcademicSession,
+                    openInlineEditSession
                 };
             }
         }).mount('#app');
