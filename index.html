@@ -107,7 +107,7 @@
                                 @error="handleLogoError"
                                 ref="logoImg"
                             />
-                            <!-- Fallback Emblem Graphic -->
+                            <!-- Fallback Emblem Graphic (Hanya keluar jika imej gagal dimuat naik) -->
                             <div v-if="logoFailed" class="absolute inset-0 bg-emerald-700 flex items-center justify-center text-white text-[10px] font-bold">
                                 <svg class="w-8 h-8 text-amber-400" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M50 5 L85 20 V55 C85 75 50 92 50 92 C50 92 15 75 15 55 V20 L50 5 Z" fill="#047857" stroke="#ffffff" stroke-width="2"/>
@@ -214,7 +214,7 @@
         </div>
 
         <!-- Kandungan Panel Berdasarkan Tab Aktif -->
-        <main class="flex-1 max-w-7xl w-full mx-auto px-4 py-8 sm:px-6 lg:px-8 space-y-8">
+        <main class="flex-1 max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 space-y-8">
             
             <!-- TAB 1: PANEL UTAMA / DASHBOARD -->
             <div v-if="activeTab === 'dashboard'" class="space-y-8">
@@ -243,7 +243,7 @@
                         <div>
                             <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Pensyarah Selesai</p>
                             <h3 class="text-2xl font-bold text-emerald-600">{{ totalLengkap }} orang</h3>
-                            <p class="text-xs text-slate-500 mt-1">Lengkap semua kursus</p>
+                            <p class="text-xs text-slate-505 mt-1">Lengkap semua kursus</p>
                         </div>
                     </div>
 
@@ -256,7 +256,7 @@
                         <div>
                             <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Belum Lengkap</p>
                             <h3 class="text-2xl font-bold text-amber-600">{{ totalProgres }} orang</h3>
-                            <p class="text-xs text-slate-555 mt-1">Terdapat subjek tertunggak</p>
+                            <p class="text-xs text-slate-505 mt-1">Terdapat subjek tertunggak</p>
                         </div>
                     </div>
 
@@ -269,7 +269,7 @@
                         <div>
                             <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Jumlah Fail Kursus</p>
                             <h3 class="text-2xl font-bold text-rose-600">{{ totalTaughtCourses }} Fail</h3>
-                            <p class="text-xs text-slate-550 mt-1">Keseluruhan subjek</p>
+                            <p class="text-xs text-slate-500 mt-1">Keseluruhan subjek</p>
                         </div>
                     </div>
                 </section>
@@ -306,6 +306,7 @@
                                 <label class="block mb-1.5 text-xs font-bold text-slate-700 uppercase">Fakulti / Jabatan</label>
                                 <select v-model="formData.fakulti" class="w-full bg-slate-50 border border-slate-300 text-slate-900 text-sm rounded-lg p-2.5 focus:ring-emerald-500">
                                     <option v-for="f in dynamicFaculties" :key="f.id" :value="f.id">{{ f.name }} ({{ f.id }})</option>
+                                    <option v-if="formData.fakulti === 'TIADA'" value="TIADA">TIADA FAKULTI (DIPADAM)</option>
                                 </select>
                             </div>
                         </div>
@@ -400,7 +401,7 @@
                     </form>
                 </section>
 
-                <!-- Jadual Analisis Mengikut Fakulti (Dinamik dengan Tindakan Sunting) -->
+                <!-- Jadual Analisis Mengikut Fakulti (Dinamik dengan Tindakan Sunting & Padam) -->
                 <section class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                     <div class="bg-kias-800 px-6 py-4 border-b border-emerald-900 flex justify-between items-center text-white">
                         <h2 class="text-sm font-bold uppercase tracking-wider">1. Analisis Kualiti Fail Mengikut Fakulti ({{ selectedSemester }})</h2>
@@ -435,15 +436,23 @@
                                             </div>
                                         </div>
                                     </td>
-                                    <!-- BUTANG EDIT UNTUK FAKULTI STANDARD -->
                                     <td class="px-6 py-4 text-center">
-                                        <button 
-                                            @click="openEditFacultyModal(row)" 
-                                            class="px-2.5 py-1 text-xs font-bold text-amber-700 hover:text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded transition"
-                                            title="Sunting Maklumat Fakulti"
-                                        >
-                                            ✏️ Edit
-                                        </button>
+                                        <div class="flex items-center justify-center gap-1.5">
+                                            <button 
+                                                @click="openEditFacultyModal(row)" 
+                                                class="px-2.5 py-1 text-xs font-bold text-amber-700 hover:text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded transition"
+                                                title="Sunting Maklumat Fakulti"
+                                            >
+                                                ✏️ Edit
+                                            </button>
+                                            <button 
+                                                @click="deleteFaculty(row.singkatan)" 
+                                                class="px-2.5 py-1 text-xs font-bold text-rose-700 hover:text-rose-800 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded transition"
+                                                title="Padam Fakulti"
+                                            >
+                                                🗑️ Padam
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             </tbody>
@@ -876,33 +885,11 @@
 
         createApp({
             setup() {
-                // Senarai Fakulti Dinamik
-                const dynamicFaculties = ref([
-                    { id: "FPIB", name: "PENGAJIAN ISLAM DAN BAHASA ARAB" },
-                    { id: "FPPI", name: "PENGURUSAN DAN PEMBANGUNAN INSAN" },
-                    { id: "FSM", name: "SYARIAH DAN MUAMALAT" },
-                    { id: "FUQS", name: "USULUDDIN DAN AL-QURAN & SUNNAH" }
-                ]);
+                // Senarai Fakulti Dinamik (Disimpan khusus mengikut sesi akademik secara berasingan)
+                const dynamicFaculties = ref([]);
 
-                // Tetapan Folder Semakan Standard Semasa (Boleh Dikemaskini / Edit oleh pengguna)
-                const folderSettings = ref([
-                    { key: "f1", label: "F1", groupName: "1. Labsheet Amali", desc: "Labsheet Amali / Bengkel" },
-                    { key: "f2_1", label: "F2.1", groupName: "2. Rancangan Pengajaran", desc: "2.1 Jadual Kuliah" },
-                    { key: "f2_2", label: "F2.2", groupName: "2. Rancangan Pengajaran", desc: "2.2 RP / Penjajaran Konstruktif (CA)" },
-                    { key: "f2_3", label: "F2.3", groupName: "2. Rancangan Pengajaran", desc: "2.3 Laporan Pertemuan Terperinci" },
-                    { key: "f3_1", label: "F3.1", groupName: "3. Rekod & Kehadiran", desc: "3.1 Senarai Pendaftaran Pelajar" },
-                    { key: "f3_2", label: "F3.2", groupName: "3. Rekod & Kehadiran", desc: "3.2 Rekod Kehadiran (Kuliah)" },
-                    { key: "f3_3", label: "F3.3", groupName: "3. Rekod & Kehadiran", desc: "3.3 Laporan Kehadiran Keseluruhan" },
-                    { key: "f4", label: "F4", groupName: "4. Moderation & Vetting", desc: "Laporan Moderation & Vetting Soalan" },
-                    { key: "f5_1", label: "F5.1", groupName: "5. Analisis Pengukuran", desc: "5.1 Laporan Markah" },
-                    { key: "f5_2", label: "F5.2", groupName: "5. Analisis Pengukuran", desc: "5.2 Laporan S3P" },
-                    { key: "f6", label: "F6", groupName: "6. JSU", desc: "Jadual Spesifikasi Ujian (JSU)" },
-                    { key: "f7_1", label: "F7.1", groupName: "7. PB & Peperiksaan Akhir", desc: "7.1 Set Soalan (PB)" },
-                    { key: "f7_2", label: "F7.2", groupName: "7. PB & Peperiksaan Akhir", desc: "7.2 Skema Pemarkahan" },
-                    { key: "f8", label: "F8", groupName: "8. Rubrik Penilaian", desc: "Rubrik Penilaian" },
-                    { key: "f9", label: "F9", groupName: "9. Penilaian Pelajar", desc: "Penilaian Pelajar Terhadap Staf (e-SuPP)" },
-                    { key: "f10", label: "F10", groupName: "10. Kuliah Online", desc: "Bukti/Rekod Pelajar Mengikuti Kuliah Online" }
-                ]);
+                // Tetapan Folder Semakan Standard Semasa (Disimpan khusus mengikut sesi akademik secara berasingan)
+                const folderSettings = ref([]);
 
                 // State Ref
                 const activeTab = ref("dashboard");
@@ -938,11 +925,11 @@
                 const showEditFacultyModal = ref(false);
                 const editingFaculty = ref(null);
 
-                // Pangkalan data bermula kosong
+                // Pangkalan data reaktif
                 const lecturers = ref([]);
                 const stats = ref([]);
 
-                // Keadaan suntingan pensyarah (Penyelesaian Ralat ReferenceError)
+                // Keadaan suntingan pensyarah
                 const isAdding = ref(false);
                 const editingLecturer = ref(null);
 
@@ -958,6 +945,10 @@
                     dynamicFaculties.value.forEach(f => {
                         base.push({ id: f.id, name: `${f.name} (${f.id})` });
                     });
+                    // Jika ada pensyarah yang kehilangan fakulti akibat dipadam pada sesi ini, tambahkan saringan "TIADA"
+                    if (lecturers.value.some(l => l.fakulti === "TIADA")) {
+                        base.push({ id: "TIADA", name: "Tiada Fakulti / Tidak Ditentukan (TIADA)" });
+                    }
                     return base;
                 });
 
@@ -981,16 +972,72 @@
                     senaraiKursus: []
                 });
 
+                // --- SISTEM PEMANCAR DAN PEMUAT DATA KHUSUS SESI AKADEMIK ---
+                const loadSessionData = (sessionName) => {
+                    // 1. Muatkan Senarai Pensyarah bagi Sesi Akademik ini
+                    const savedLecturers = localStorage.getItem("kias_3state_lecturers_v2_" + sessionName);
+                    if (savedLecturers) {
+                        try {
+                            lecturers.value = JSON.parse(savedLecturers);
+                        } catch (e) {
+                            console.error(e);
+                            lecturers.value = [];
+                        }
+                    } else {
+                        lecturers.value = []; // Permulaan data kosong
+                    }
+
+                    // 2. Muatkan Senarai Fakulti Dinamik khusus bagi Sesi Akademik ini
+                    const savedFaculties = localStorage.getItem("kias_dynamic_faculties_" + sessionName);
+                    if (savedFaculties) {
+                        try {
+                            dynamicFaculties.value = JSON.parse(savedFaculties);
+                        } catch (e) {
+                            console.error(e);
+                        }
+                    } else {
+                        // Sesi baharu dimulakan dengan Fakulti Asal Lalai
+                        dynamicFaculties.value = [
+                            { id: "FPIB", name: "PENGAJIAN ISLAM DAN BAHASA ARAB" },
+                            { id: "FPPI", name: "PENGURUSAN DAN PEMBANGUNAN INSAN" },
+                            { id: "FSM", name: "SYARIAH DAN MUAMALAT" },
+                            { id: "FUQS", name: "USULUDDIN DAN AL-QURAN & SUNNAH" }
+                        ];
+                    }
+
+                    // 3. Muatkan Struktur Folder Standard khusus bagi Sesi Akademik ini
+                    const savedFolders = localStorage.getItem("kias_folder_settings_" + sessionName);
+                    if (savedFolders) {
+                        try {
+                            folderSettings.value = JSON.parse(savedFolders);
+                        } catch (e) {
+                            console.error(e);
+                        }
+                    } else {
+                        // Folder lalai sekiranya sesi baharu pertama kali dimuatkan
+                        folderSettings.value = [
+                            { key: "f1", label: "F1", groupName: "1. Labsheet Amali", desc: "Labsheet Amali / Bengkel" },
+                            { key: "f2_1", label: "F2.1", groupName: "2. Rancangan Pengajaran", desc: "2.1 Jadual Kuliah" },
+                            { key: "f2_2", label: "F2.2", groupName: "2. Rancangan Pengajaran", desc: "2.2 RP / Penjajaran Konstruktif (CA)" },
+                            { key: "f2_3", label: "F2.3", groupName: "2. Rancangan Pengajaran", desc: "2.3 Laporan Pertemuan Terperinci" },
+                            { key: "f3_1", label: "F3.1", groupName: "3. Rekod & Kehadiran", desc: "3.1 Senarai Pendaftaran Pelajar" },
+                            { key: "f3_2", label: "F3.2", groupName: "3. Rekod & Kehadiran", desc: "3.2 Rekod Kehadiran (Kuliah)" },
+                            { key: "f3_3", label: "F3.3", groupName: "3. Rekod & Kehadiran", desc: "3.3 Laporan Kehadiran Keseluruhan" },
+                            { key: "f4", label: "F4", groupName: "4. Moderation & Vetting", desc: "Laporan Moderation & Vetting Soalan" },
+                            { key: "f5_1", label: "F5.1", groupName: "5. Analisis Pengukuran", desc: "5.1 Laporan Markah" },
+                            { key: "f5_2", label: "F5.2", groupName: "5. Analisis Pengukuran", desc: "5.2 Laporan S3P" },
+                            { key: "f6", label: "F6", groupName: "6. JSU", desc: "Jadual Spesifikasi Ujian (JSU)" },
+                            { key: "f7_1", label: "F7.1", groupName: "7. PB & Peperiksaan Akhir", desc: "7.1 Set Soalan (PB)" },
+                            { key: "f7_2", label: "F7.2", groupName: "7. PB & Peperiksaan Akhir", desc: "7.2 Skema Pemarkahan" },
+                            { key: "f8", label: "F8", groupName: "8. Rubrik Penilaian", desc: "Rubrik Penilaian" },
+                            { key: "f9", label: "F9", groupName: "9. Penilaian Pelajar", desc: "Penilaian Pelajar Terhadap Staf (e-SuPP)" },
+                            { key: "f10", label: "F10", groupName: "10. Kuliah Online", desc: "Bukti/Rekod Pelajar Mengikuti Kuliah Online" }
+                        ];
+                    }
+                };
+
                 // LocalStorage integration on mount
                 onMounted(() => {
-                    const saved = localStorage.getItem("kias_3state_lecturers_v2");
-                    if (saved) {
-                        try {
-                            lecturers.value = JSON.parse(saved);
-                        } catch (e) {
-                            console.error("Gagal memuat naik data tersimpan", e);
-                        }
-                    }
                     const savedSessions = localStorage.getItem("kias_academic_sessions");
                     if (savedSessions) {
                         try {
@@ -999,22 +1046,9 @@
                             console.error(e);
                         }
                     }
-                    const savedFaculties = localStorage.getItem("kias_dynamic_faculties");
-                    if (savedFaculties) {
-                        try {
-                            dynamicFaculties.value = JSON.parse(savedFaculties);
-                        } catch (e) {
-                            console.error(e);
-                        }
-                    }
-                    const savedFolders = localStorage.getItem("kias_folder_settings");
-                    if (savedFolders) {
-                        try {
-                            folderSettings.value = JSON.parse(savedFolders);
-                        } catch (e) {
-                            console.error(e);
-                        }
-                    }
+                    
+                    // Muatkan data bagi sesi akademik terpilih pada mulanya
+                    loadSessionData(selectedSemester.value);
                 });
 
                 // Toast Alert Helper
@@ -1080,10 +1114,21 @@
                     });
                 };
 
-                // Tukar Semester
+                // Fungsi Menangani Penukaran Semester Sesi Akademik
                 const handleSemesterChange = () => {
                     showToast(`Beralih ke paparan Sesi: ${selectedSemester.value}`, "info");
                 };
+
+                // Memantau penukaran Semester secara Dinamik dan mengasingkan storan data
+                watch(selectedSemester, (newSession, oldSession) => {
+                    if (oldSession) {
+                        // Selesai draf sesi akademik lama disimpan terlebih dahulu sebelum beralih
+                        localStorage.setItem("kias_3state_lecturers_v2_" + oldSession, JSON.stringify(lecturers.value));
+                        localStorage.setItem("kias_dynamic_faculties_" + oldSession, JSON.stringify(dynamicFaculties.value));
+                        localStorage.setItem("kias_folder_settings_" + oldSession, JSON.stringify(folderSettings.value));
+                    }
+                    loadSessionData(newSession);
+                });
 
                 // Tambah Sesi Baru
                 const addNewAcademicSession = () => {
@@ -1097,6 +1142,7 @@
                     }
                     academicSessions.value.unshift(newSessionName.value);
                     localStorage.setItem("kias_academic_sessions", JSON.stringify(academicSessions.value));
+                    
                     selectedSemester.value = newSessionName.value;
                     showAddSessionModal.value = false;
                     newSessionName.value = "";
@@ -1115,11 +1161,31 @@
                         showCustomAlert("Input Tidak Sah", "Nama sesi akademik tidak boleh dibiarkan kosong!");
                         return;
                     }
-                    const index = academicSessions.value.indexOf(selectedSemester.value);
+                    
+                    const oldSession = selectedSemester.value;
+                    const newSession = editSessionName.value.trim();
+                    
+                    const index = academicSessions.value.indexOf(oldSession);
                     if (index !== -1) {
-                        academicSessions.value[index] = editSessionName.value.trim();
-                        selectedSemester.value = editSessionName.value.trim();
+                        // Kemaskini nama dalam senarai sesi
+                        academicSessions.value[index] = newSession;
                         localStorage.setItem("kias_academic_sessions", JSON.stringify(academicSessions.value));
+                        
+                        // Pindahkan storan draf sesi akademik lama ke sesi baharu di local storage
+                        const tempLec = localStorage.getItem("kias_3state_lecturers_v2_" + oldSession);
+                        const tempFac = localStorage.getItem("kias_dynamic_faculties_" + oldSession);
+                        const tempFol = localStorage.getItem("kias_folder_settings_" + oldSession);
+                        
+                        if (tempLec) localStorage.setItem("kias_3state_lecturers_v2_" + newSession, tempLec);
+                        if (tempFac) localStorage.setItem("kias_dynamic_faculties_" + newSession, tempFac);
+                        if (tempFol) localStorage.setItem("kias_folder_settings_" + newSession, tempFol);
+                        
+                        // Hapuskan bekas draf sesi yang lama
+                        localStorage.removeItem("kias_3state_lecturers_v2_" + oldSession);
+                        localStorage.removeItem("kias_dynamic_faculties_" + oldSession);
+                        localStorage.removeItem("kias_folder_settings_" + oldSession);
+                        
+                        selectedSemester.value = newSession;
                         showEditSessionModal.value = false;
                         showToast("Nama Sesi Akademik semasa berjaya dikemaskini.");
                     }
@@ -1155,7 +1221,7 @@
                         f.groupName = f.groupName.trim();
                         f.desc = f.desc.trim();
                     });
-                    localStorage.setItem("kias_folder_settings", JSON.stringify(folderSettings.value));
+                    localStorage.setItem("kias_folder_settings_" + selectedSemester.value, JSON.stringify(folderSettings.value));
                     showEditFoldersModal.value = false;
                     showToast("Struktur senarai semak folder kualiti berjaya dikemaskini.");
                 };
@@ -1181,7 +1247,7 @@
                             { key: "f9", label: "F9", groupName: "9. Penilaian Pelajar", desc: "Penilaian Pelajar Terhadap Staf (e-SuPP)" },
                             { key: "f10", label: "F10", groupName: "10. Kuliah Online", desc: "Bukti/Rekod Pelajar Mengikuti Kuliah Online" }
                         ];
-                        localStorage.setItem("kias_folder_settings", JSON.stringify(folderSettings.value));
+                        localStorage.setItem("kias_folder_settings_" + selectedSemester.value, JSON.stringify(folderSettings.value));
                         showEditFoldersModal.value = false;
                         showToast("Struktur folder diset semula ke konfigurasi asal.");
                     });
@@ -1202,7 +1268,7 @@
                     }
 
                     dynamicFaculties.value.push({ id: fid, name: fname });
-                    localStorage.setItem("kias_dynamic_faculties", JSON.stringify(dynamicFaculties.value));
+                    localStorage.setItem("kias_dynamic_faculties_" + selectedSemester.value, JSON.stringify(dynamicFaculties.value));
                     
                     showAddFacultyModal.value = false;
                     newFacultyId.value = "";
@@ -1249,13 +1315,36 @@
                         }
                     });
 
-                    // Simpan terus ke localStorage
-                    localStorage.setItem("kias_dynamic_faculties", JSON.stringify(dynamicFaculties.value));
-                    localStorage.setItem("kias_3state_lecturers_v2", JSON.stringify(lecturers.value));
+                    // Simpan terus ke localStorage bagi sesi aktif
+                    localStorage.setItem("kias_dynamic_faculties_" + selectedSemester.value, JSON.stringify(dynamicFaculties.value));
+                    localStorage.setItem("kias_3state_lecturers_v2_" + selectedSemester.value, JSON.stringify(lecturers.value));
 
                     showEditFacultyModal.value = false;
                     editingFaculty.value = null;
                     showToast("Maklumat fakulti / pusat pengajian berjaya dikemaskini.");
+                };
+
+                const deleteFaculty = (facultyId) => {
+                    showCustomConfirm(
+                        "Padam Fakulti / Pusat Pengajian", 
+                        `Adakah anda pasti mahu memadam fakulti (${facultyId}) ini? Rekod pensyarah di bawah fakulti ini akan dikekalkan dengan status 'TIADA FAKULTI' demi keselamatan data.`, 
+                        () => {
+                            // Buang daripada senarai fakulti dinamik bagi sesi ini
+                            dynamicFaculties.value = dynamicFaculties.value.filter(f => f.id !== facultyId);
+                            localStorage.setItem("kias_dynamic_faculties_" + selectedSemester.value, JSON.stringify(dynamicFaculties.value));
+
+                            // Kemaskini data pensyarah yang berkaitan kepada 'TIADA' (Kekalkan data pensyarah)
+                            lecturers.value = lecturers.value.map(l => {
+                                if (l.fakulti === facultyId) {
+                                    return { ...l, fakulti: "TIADA" };
+                                }
+                                return l;
+                            });
+                            localStorage.setItem("kias_3state_lecturers_v2_" + selectedSemester.value, JSON.stringify(lecturers.value));
+
+                            showToast("Fakulti berjaya dipadam. Rekod pensyarah di bawahnya dikekalkan.", "warning");
+                        }
+                    );
                 };
 
                 // Reset Saringan Serta Penapis
@@ -1393,8 +1482,8 @@
                         showToast("Pendaftaran pensyarah baharu berjaya didaftarkan.");
                     }
 
-                    // Simpan ke localStorage
-                    localStorage.setItem("kias_3state_lecturers_v2", JSON.stringify(lecturers.value));
+                    // Simpan ke localStorage khusus sesi semasa
+                    localStorage.setItem("kias_3state_lecturers_v2_" + selectedSemester.value, JSON.stringify(lecturers.value));
 
                     isAdding.value = false;
                     resetFormData();
@@ -1403,7 +1492,7 @@
                 const handleDelete = (id) => {
                     showCustomConfirm("Padam Rekod", "Adakah anda pasti untuk memadam profil pensyarah ini beserta semua rekod subjek diajarnya?", () => {
                         lecturers.value = lecturers.value.filter(l => l.id !== id);
-                        localStorage.setItem("kias_3state_lecturers_v2", JSON.stringify(lecturers.value));
+                        localStorage.setItem("kias_3state_lecturers_v2_" + selectedSemester.value, JSON.stringify(lecturers.value));
                         showToast("Rekod berjaya dipadam.", "warning");
                     });
                 };
@@ -1445,7 +1534,7 @@
                     return lecturers.value.reduce((acc, curr) => acc + (curr.senaraiKursus ? curr.senaraiKursus.length : 0), 0);
                 });
 
-                // Penyelarasan Statistik Fakulti Dinamik
+                // Penyelarasan Statistik Fakulti Dinamik mengikut data semasa
                 watch([lecturers, dynamicFaculties], () => {
                     const updatedStats = dynamicFaculties.value.map((f, index) => {
                         const lecturersInFaculty = lecturers.value.filter(l => l.fakulti === f.id);
@@ -1472,7 +1561,9 @@
                         };
                     });
                     stats.value = updatedStats;
-                    localStorage.setItem("kias_3state_lecturers_v2", JSON.stringify(lecturers.value));
+                    
+                    // Simpan draf sesi aktif secara automatik apabila berlaku kemas kini
+                    localStorage.setItem("kias_3state_lecturers_v2_" + selectedSemester.value, JSON.stringify(lecturers.value));
                 }, { deep: true, immediate: true });
 
                 const getCompleteRate = (row) => {
@@ -1493,7 +1584,7 @@
 
                 const disconnectDatabase = () => {
                     dbSettings.value.connected = false;
-                    showToast("Sambungan diputuskan.", "info");
+                    showToast("Sambungan Google Sheet diputuskan.", "info");
                 };
 
                 // --- PROSES CSV: IMPORT & TEMPLAT BERKELOMPOK ---
@@ -1898,7 +1989,8 @@
                     showEditFacultyModal,
                     editingFaculty,
                     openEditFacultyModal,
-                    updateFaculty
+                    updateFaculty,
+                    deleteFaculty
                 };
             }
         }).mount('#app');
