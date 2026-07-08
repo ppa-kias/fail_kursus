@@ -161,7 +161,7 @@
                         </select>
                         <button 
                             @click="showAddSessionModal = true"
-                            class="p-2.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-lg text-slate-750"
+                            class="p-2.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-lg text-slate-755"
                             title="Tambah Sesi Akademik Baru"
                         >
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -256,7 +256,7 @@
                         <div>
                             <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Belum Lengkap</p>
                             <h3 class="text-2xl font-bold text-amber-600">{{ totalProgres }} orang</h3>
-                            <p class="text-xs text-slate-550 mt-1">Terdapat subjek tertunggak</p>
+                            <p class="text-xs text-slate-555 mt-1">Terdapat subjek tertunggak</p>
                         </div>
                     </div>
 
@@ -278,7 +278,7 @@
                 <section v-if="isAdding" class="bg-white p-6 rounded-xl shadow-md border-t-4 border-emerald-700">
                     <div class="flex justify-between items-center mb-6 pb-3 border-b border-slate-200">
                         <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
-                            <svg class="w-5 h-5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-5 h-5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                             </svg>
                             {{ editingLecturer ? 'Kemaskini Fail Kursus Pensyarah' : 'Masukkan Rekod Fail Kursus Baru' }}
@@ -363,7 +363,7 @@
                                     </div>
                                 </div>
 
-                                <!-- Checklist 10 Folder untuk Kursus Ini -->
+                                <!-- Checklist 10 Folder untuk Kursus Ini (Fully Dynamic) -->
                                 <div class="space-y-2">
                                     <div class="flex justify-between items-center border-b pb-1">
                                         <span class="text-xs font-bold text-slate-600">Senarai Semak 10 Folder Standard ({{ formData.senaraiKursus[activeFormCourseIndex].kodKursus || 'Subjek Ini' }})</span>
@@ -375,115 +375,17 @@
                                     </div>
 
                                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 bg-slate-50 p-3 rounded-lg border">
-                                        <!-- Folder 1 -->
-                                        <div class="p-2 bg-white rounded border flex items-center justify-between text-[11px]">
-                                            <span><b class="text-slate-800">1.</b> Labsheet Amali</span>
-                                            <div class="flex bg-slate-100 p-0.5 rounded border">
-                                                <button type="button" @click="formData.senaraiKursus[activeFormCourseIndex].folder.f1 = 'YA'" :class="['px-1.5 py-0.5 rounded text-[9px] font-bold', formData.senaraiKursus[activeFormCourseIndex].folder.f1 === 'YA' ? 'bg-emerald-500 text-white' : 'text-slate-500']">YA</button>
-                                                <button type="button" @click="formData.senaraiKursus[activeFormCourseIndex].folder.f1 = 'TIDAK'" :class="['px-1.5 py-0.5 rounded text-[9px] font-bold', formData.senaraiKursus[activeFormCourseIndex].folder.f1 === 'TIDAK' ? 'bg-rose-500 text-white' : 'text-slate-500']">TDK</button>
-                                                <button type="button" @click="formData.senaraiKursus[activeFormCourseIndex].folder.f1 = 'TB'" :class="['px-1.5 py-0.5 rounded text-[9px] font-bold', formData.senaraiKursus[activeFormCourseIndex].folder.f1 === 'TB' ? 'bg-sky-500 text-white' : 'text-slate-500']">TB</button>
-                                            </div>
-                                        </div>
-
-                                        <!-- Folder 2: RP Breakdown -->
-                                        <div class="p-2 bg-white rounded border space-y-2 text-[11px]">
-                                            <b class="text-slate-800 block border-b pb-1">2. Rancangan Pengajaran (RP)</b>
-                                            <div v-for="item in [{key: 'f2_1', label: '2.1 Jadual Kuliah'}, {key: 'f2_2', label: '2.2 RP/CA'}, {key: 'f2_3', label: '2.3 Laporan Pertemuan'}]" :key="item.key" class="flex items-center justify-between">
-                                                <span>{{ item.label }}</span>
-                                                <div class="flex bg-slate-100 p-0.5 rounded border">
-                                                    <button type="button" @click="formData.senaraiKursus[activeFormCourseIndex].folder[item.key] = 'YA'" :class="['px-1.5 py-0.5 rounded text-[8px] font-bold', formData.senaraiKursus[activeFormCourseIndex].folder[item.key] === 'YA' ? 'bg-emerald-500 text-white' : 'text-slate-500']">YA</button>
-                                                    <button type="button" @click="formData.senaraiKursus[activeFormCourseIndex].folder[item.key] = 'TIDAK'" :class="['px-1.5 py-0.5 rounded text-[8px] font-bold', formData.senaraiKursus[activeFormCourseIndex].folder[item.key] === 'TIDAK' ? 'bg-rose-500 text-white' : 'text-slate-500']">TDK</button>
-                                                    <button type="button" @click="formData.senaraiKursus[activeFormCourseIndex].folder[item.key] = 'TB'" :class="['px-1.5 py-0.5 rounded text-[8px] font-bold', formData.senaraiKursus[activeFormCourseIndex].folder[item.key] === 'TB' ? 'bg-sky-500 text-white' : 'text-slate-500']">TB</button>
+                                        <div v-for="(items, groupName) in groupedFolderSettings" :key="groupName" class="p-2.5 bg-white rounded border space-y-2 text-[11px] flex flex-col justify-between">
+                                            <div>
+                                                <b class="text-slate-800 block border-b pb-1 mb-1.5">{{ groupName }}</b>
+                                                <div v-for="item in items" :key="item.key" class="flex items-center justify-between gap-2 py-1">
+                                                    <span class="text-slate-600 font-medium" :title="item.desc">{{ item.desc }}</span>
+                                                    <div class="flex bg-slate-100 p-0.5 rounded border shrink-0 ml-auto">
+                                                        <button type="button" @click="formData.senaraiKursus[activeFormCourseIndex].folder[item.key] = 'YA'" :class="['px-1.5 py-0.5 rounded text-[8px] font-bold transition-all', formData.senaraiKursus[activeFormCourseIndex].folder[item.key] === 'YA' ? 'bg-emerald-500 text-white' : 'text-slate-500']">YA</button>
+                                                        <button type="button" @click="formData.senaraiKursus[activeFormCourseIndex].folder[item.key] = 'TIDAK'" :class="['px-1.5 py-0.5 rounded text-[8px] font-bold transition-all', formData.senaraiKursus[activeFormCourseIndex].folder[item.key] === 'TIDAK' ? 'bg-rose-500 text-white' : 'text-slate-500']">TDK</button>
+                                                        <button type="button" @click="formData.senaraiKursus[activeFormCourseIndex].folder[item.key] = 'TB'" :class="['px-1.5 py-0.5 rounded text-[8px] font-bold transition-all', formData.senaraiKursus[activeFormCourseIndex].folder[item.key] === 'TB' ? 'bg-sky-500 text-white' : 'text-slate-500']">TB</button>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </div>
-
-                                        <!-- Folder 3: Rekod & Kehadiran -->
-                                        <div class="p-2 bg-white rounded border space-y-2 text-[11px]">
-                                            <b class="text-slate-800 block border-b pb-1">3. Rekod & Kehadiran Pelajar</b>
-                                            <div v-for="item in [{key: 'f3_1', label: '3.1 Daftar Pelajar'}, {key: 'f3_2', label: '3.2 Kehadiran'}, {key: 'f3_3', label: '3.3 Laporan Hadir'}]" :key="item.key" class="flex items-center justify-between">
-                                                <span>{{ item.label }}</span>
-                                                <div class="flex bg-slate-100 p-0.5 rounded border">
-                                                    <button type="button" @click="formData.senaraiKursus[activeFormCourseIndex].folder[item.key] = 'YA'" :class="['px-1.5 py-0.5 rounded text-[8px] font-bold', formData.senaraiKursus[activeFormCourseIndex].folder[item.key] === 'YA' ? 'bg-emerald-500 text-white' : 'text-slate-500']">YA</button>
-                                                    <button type="button" @click="formData.senaraiKursus[activeFormCourseIndex].folder[item.key] = 'TIDAK'" :class="['px-1.5 py-0.5 rounded text-[8px] font-bold', formData.senaraiKursus[activeFormCourseIndex].folder[item.key] === 'TIDAK' ? 'bg-rose-500 text-white' : 'text-slate-500']">TDK</button>
-                                                    <button type="button" @click="formData.senaraiKursus[activeFormCourseIndex].folder[item.key] = 'TB'" :class="['px-1.5 py-0.5 rounded text-[8px] font-bold', formData.senaraiKursus[activeFormCourseIndex].folder[item.key] === 'TB' ? 'bg-sky-500 text-white' : 'text-slate-500']">TB</button>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <!-- Folder 4 -->
-                                        <div class="p-2 bg-white rounded border flex items-center justify-between text-[11px]">
-                                            <span><b class="text-slate-800">4.</b> Moderation & Vetting</span>
-                                            <div class="flex bg-slate-100 p-0.5 rounded border">
-                                                <button type="button" @click="formData.senaraiKursus[activeFormCourseIndex].folder.f4 = 'YA'" :class="['px-1.5 py-0.5 rounded text-[9px] font-bold', formData.senaraiKursus[activeFormCourseIndex].folder.f4 === 'YA' ? 'bg-emerald-500 text-white' : 'text-slate-500']">YA</button>
-                                                <button type="button" @click="formData.senaraiKursus[activeFormCourseIndex].folder.f4 = 'TIDAK'" :class="['px-1.5 py-0.5 rounded text-[9px] font-bold', formData.senaraiKursus[activeFormCourseIndex].folder.f4 === 'TIDAK' ? 'bg-rose-500 text-white' : 'text-slate-500']">TDK</button>
-                                                <button type="button" @click="formData.senaraiKursus[activeFormCourseIndex].folder.f4 = 'TB'" :class="['px-1.5 py-0.5 rounded text-[9px] font-bold', formData.senaraiKursus[activeFormCourseIndex].folder.f4 === 'TB' ? 'bg-sky-500 text-white' : 'text-slate-500']">TB</button>
-                                            </div>
-                                        </div>
-
-                                        <!-- Folder 5 -->
-                                        <div class="p-2 bg-white rounded border space-y-2 text-[11px]">
-                                            <b class="text-slate-800 block border-b pb-1">5. Analisis Pengukuran</b>
-                                            <div v-for="item in [{key: 'f5_1', label: '5.1 Laporan Markah'}, {key: 'f5_2', label: '5.2 Laporan S3P'}]" :key="item.key" class="flex items-center justify-between">
-                                                <span>{{ item.label }}</span>
-                                                <div class="flex bg-slate-100 p-0.5 rounded border">
-                                                    <button type="button" @click="formData.senaraiKursus[activeFormCourseIndex].folder[item.key] = 'YA'" :class="['px-1.5 py-0.5 rounded text-[8px] font-bold', formData.senaraiKursus[activeFormCourseIndex].folder[item.key] === 'YA' ? 'bg-emerald-500 text-white' : 'text-slate-500']">YA</button>
-                                                    <button type="button" @click="formData.senaraiKursus[activeFormCourseIndex].folder[item.key] = 'TIDAK'" :class="['px-1.5 py-0.5 rounded text-[8px] font-bold', formData.senaraiKursus[activeFormCourseIndex].folder[item.key] === 'TIDAK' ? 'bg-rose-500 text-white' : 'text-slate-500']">TDK</button>
-                                                    <button type="button" @click="formData.senaraiKursus[activeFormCourseIndex].folder[item.key] = 'TB'" :class="['px-1.5 py-0.5 rounded text-[8px] font-bold', formData.senaraiKursus[activeFormCourseIndex].folder[item.key] === 'TB' ? 'bg-sky-500 text-white' : 'text-slate-500']">TB</button>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <!-- Folder 6 -->
-                                        <div class="p-2 bg-white rounded border flex items-center justify-between text-[11px]">
-                                            <span><b class="text-slate-800">6.</b> JSU</span>
-                                            <div class="flex bg-slate-100 p-0.5 rounded border">
-                                                <button type="button" @click="formData.senaraiKursus[activeFormCourseIndex].folder.f6 = 'YA'" :class="['px-1.5 py-0.5 rounded text-[9px] font-bold', formData.senaraiKursus[activeFormCourseIndex].folder.f6 === 'YA' ? 'bg-emerald-500 text-white' : 'text-slate-500']">YA</button>
-                                                <button type="button" @click="formData.senaraiKursus[activeFormCourseIndex].folder.f6 = 'TIDAK'" :class="['px-1.5 py-0.5 rounded text-[9px] font-bold', formData.senaraiKursus[activeFormCourseIndex].folder.f6 === 'TIDAK' ? 'bg-rose-500 text-white' : 'text-slate-500']">TDK</button>
-                                                <button type="button" @click="formData.senaraiKursus[activeFormCourseIndex].folder.f6 = 'TB'" :class="['px-1.5 py-0.5 rounded text-[9px] font-bold', formData.senaraiKursus[activeFormCourseIndex].folder.f6 === 'TB' ? 'bg-sky-500 text-white' : 'text-slate-500']">TB</button>
-                                            </div>
-                                        </div>
-
-                                        <!-- Folder 7 -->
-                                        <div class="p-2 bg-white rounded border space-y-2 text-[11px]">
-                                            <b class="text-slate-800 block border-b pb-1">7. PB & Peperiksaan Akhir</b>
-                                            <div v-for="item in [{key: 'f7_1', label: '7.1 Set Soalan'}, {key: 'f7_2', label: '7.2 Skema Pemarkahan'}]" :key="item.key" class="flex items-center justify-between">
-                                                <span>{{ item.label }}</span>
-                                                <div class="flex bg-slate-100 p-0.5 rounded border">
-                                                    <button type="button" @click="formData.senaraiKursus[activeFormCourseIndex].folder[item.key] = 'YA'" :class="['px-1.5 py-0.5 rounded text-[8px] font-bold', formData.senaraiKursus[activeFormCourseIndex].folder[item.key] === 'YA' ? 'bg-emerald-500 text-white' : 'text-slate-500']">YA</button>
-                                                    <button type="button" @click="formData.senaraiKursus[activeFormCourseIndex].folder[item.key] = 'TIDAK'" :class="['px-1.5 py-0.5 rounded text-[8px] font-bold', formData.senaraiKursus[activeFormCourseIndex].folder[item.key] === 'TIDAK' ? 'bg-rose-500 text-white' : 'text-slate-500']">TDK</button>
-                                                    <button type="button" @click="formData.senaraiKursus[activeFormCourseIndex].folder[item.key] = 'TB'" :class="['px-1.5 py-0.5 rounded text-[8px] font-bold', formData.senaraiKursus[activeFormCourseIndex].folder[item.key] === 'TB' ? 'bg-sky-500 text-white' : 'text-slate-500']">TB</button>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <!-- Folder 8 -->
-                                        <div class="p-2 bg-white rounded border flex items-center justify-between text-[11px]">
-                                            <span><b class="text-slate-800">8.</b> Rubrik Penilaian</span>
-                                            <div class="flex bg-slate-100 p-0.5 rounded border">
-                                                <button type="button" @click="formData.senaraiKursus[activeFormCourseIndex].folder.f8 = 'YA'" :class="['px-1.5 py-0.5 rounded text-[9px] font-bold', formData.senaraiKursus[activeFormCourseIndex].folder.f8 === 'YA' ? 'bg-emerald-500 text-white' : 'text-slate-500']">YA</button>
-                                                <button type="button" @click="formData.senaraiKursus[activeFormCourseIndex].folder.f8 = 'TIDAK'" :class="['px-1.5 py-0.5 rounded text-[9px] font-bold', formData.senaraiKursus[activeFormCourseIndex].folder.f8 === 'TIDAK' ? 'bg-rose-500 text-white' : 'text-slate-500']">TDK</button>
-                                                <button type="button" @click="formData.senaraiKursus[activeFormCourseIndex].folder.f8 = 'TB'" :class="['px-1.5 py-0.5 rounded text-[9px] font-bold', formData.senaraiKursus[activeFormCourseIndex].folder.f8 === 'TB' ? 'bg-sky-500 text-white' : 'text-slate-500']">TB</button>
-                                            </div>
-                                        </div>
-
-                                        <!-- Folder 9 -->
-                                        <div class="p-2 bg-white rounded border flex items-center justify-between text-[11px]">
-                                            <span><b class="text-slate-800">9.</b> Penilaian Pelajar (e-SuPP)</span>
-                                            <div class="flex bg-slate-100 p-0.5 rounded border">
-                                                <button type="button" @click="formData.senaraiKursus[activeFormCourseIndex].folder.f9 = 'YA'" :class="['px-1.5 py-0.5 rounded text-[9px] font-bold', formData.senaraiKursus[activeFormCourseIndex].folder.f9 === 'YA' ? 'bg-emerald-500 text-white' : 'text-slate-500']">YA</button>
-                                                <button type="button" @click="formData.senaraiKursus[activeFormCourseIndex].folder.f9 = 'TIDAK'" :class="['px-1.5 py-0.5 rounded text-[9px] font-bold', formData.senaraiKursus[activeFormCourseIndex].folder.f9 === 'TIDAK' ? 'bg-rose-500 text-white' : 'text-slate-500']">TDK</button>
-                                                <button type="button" @click="formData.senaraiKursus[activeFormCourseIndex].folder.f9 = 'TB'" :class="['px-1.5 py-0.5 rounded text-[9px] font-bold', formData.senaraiKursus[activeFormCourseIndex].folder.f9 === 'TB' ? 'bg-sky-500 text-white' : 'text-slate-500']">TB</button>
-                                            </div>
-                                        </div>
-
-                                        <!-- Folder 10 -->
-                                        <div class="p-2 bg-white rounded border flex items-center justify-between text-[11px]">
-                                            <span><b class="text-slate-800">10.</b> Bukti Kuliah Online</span>
-                                            <div class="flex bg-slate-100 p-0.5 rounded border">
-                                                <button type="button" @click="formData.senaraiKursus[activeFormCourseIndex].folder.f10 = 'YA'" :class="['px-1.5 py-0.5 rounded text-[9px] font-bold', formData.senaraiKursus[activeFormCourseIndex].folder.f10 === 'YA' ? 'bg-emerald-500 text-white' : 'text-slate-500']">YA</button>
-                                                <button type="button" @click="formData.senaraiKursus[activeFormCourseIndex].folder.f10 = 'TIDAK'" :class="['px-1.5 py-0.5 rounded text-[9px] font-bold', formData.senaraiKursus[activeFormCourseIndex].folder.f10 === 'TIDAK' ? 'bg-rose-500 text-white' : 'text-slate-500']">TDK</button>
-                                                <button type="button" @click="formData.senaraiKursus[activeFormCourseIndex].folder.f10 = 'TB'" :class="['px-1.5 py-0.5 rounded text-[9px] font-bold', formData.senaraiKursus[activeFormCourseIndex].folder.f10 === 'TB' ? 'bg-sky-500 text-white' : 'text-slate-500']">TB</button>
                                             </div>
                                         </div>
                                     </div>
@@ -546,7 +448,11 @@
                                 <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wide">2. Rekod Semakan Fail Kursus Staf Akademik (Kelompok Kursus)</h2>
                                 <p class="text-xs text-slate-500 mt-0.5">Memaparkan pecahan progres pemfailan bagi kesemua kursus yang diajar oleh pensyarah secara berasingan.</p>
                             </div>
-                            <div class="flex gap-2">
+                            <div class="flex flex-wrap gap-2">
+                                <!-- BUTANG EDIT SENARAI SEMAK FOLDER -->
+                                <button @click="showEditFoldersModal = true" class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-lg transition uppercase tracking-wider shadow-sm flex items-center gap-1">
+                                    ⚙️ Urus Urutan Folder
+                                </button>
                                 <button @click="openAddForm" class="px-4 py-2 bg-emerald-750 hover:bg-emerald-800 text-emerald-800 hover:text-emerald-900 border border-emerald-300 bg-emerald-50 text-xs font-bold rounded-lg transition uppercase tracking-wider shadow-sm">Tambah Pensyarah Baru</button>
                                 <button @click="generatePDFReport" class="px-4 py-2 bg-rose-700 hover:bg-rose-800 text-white text-xs font-bold rounded-lg transition uppercase tracking-wider shadow">Muat Turun PDF Laporan</button>
                             </div>
@@ -578,7 +484,7 @@
                                     <th class="px-4 py-3 text-center">Bil.</th>
                                     <th class="px-5 py-3">Pensyarah & Fakulti</th>
                                     <th class="px-4 py-3 text-center">Jawatan</th>
-                                    <th class="px-5 py-3">Pecahan Progres Mengikut Kursus yang Diajar (Saringan 10 Folder)</th>
+                                    <th class="px-5 py-3">Pecahan Progres Mengikut Kursus yang Diajar (Saringan 10 Folder Semasa)</th>
                                     <th class="px-4 py-3 text-center">Status Keseluruhan</th>
                                     <th class="px-5 py-3 text-center">Tindakan Profil</th>
                                 </tr>
@@ -608,12 +514,12 @@
                                                     <span class="text-[10px] font-bold text-slate-500">Progres: {{ getCourseProgress(kursus) }}%</span>
                                                 </div>
                                                 
-                                                <!-- Visual 10 Folder Indicators -->
+                                                <!-- Visual 10 Folder Indicators (Dynamic) -->
                                                 <div class="flex flex-wrap gap-1">
                                                     <span 
                                                         v-for="(f, fIdx) in getFolderStatusMapForCourse(kursus)" 
                                                         :key="fIdx" 
-                                                        :title="f.label + ': ' + f.active" 
+                                                        :title="f.desc + ': ' + f.active" 
                                                         :class="[
                                                             'text-[9px] w-5 h-5 flex items-center justify-center rounded font-bold border transition-all', 
                                                             f.active === 'YA' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 
@@ -717,7 +623,7 @@
                             v-model="pastedExcelText" 
                             rows="8" 
                             placeholder="Tampal sel dari Excel di sini...&#10;Contoh format lajur:&#10;Nama Pensyarah, Jawatan, Fakulti, Kod Kursus, f1, f2_1, f2_2, f2_3, f3_1, f3_2, f3_3, f4, f5_1, f5_2, f6, f7_1, f7_2, f8, f9, f10, Catatan"
-                            class="w-full p-3 text-slate-900 bg-slate-50 border border-slate-350 rounded-lg p-3 text-xs font-mono focus:ring-emerald-500 focus:border-emerald-500"
+                            class="w-full p-3 text-slate-900 bg-slate-50 border border-slate-355 rounded-lg p-3 text-xs font-mono focus:ring-emerald-500 focus:border-emerald-500"
                         ></textarea>
                         
                         <div class="flex justify-end gap-2">
@@ -783,6 +689,24 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Bahagian Garis Panduan Ringkas standard Folder Fail Kursus KIAS (Dynamic Guidelines) -->
+            <section class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-4">
+                <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wide flex items-center gap-2">
+                    <svg class="w-5 h-5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Panduan & Standard Pemfailan Kursus KIAS (Struktur Fail Standard Semasa)
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 text-xs text-slate-600">
+                    <div v-for="(items, groupName) in groupedFolderSettings" :key="groupName" class="p-3 bg-slate-50 rounded-lg border border-slate-150">
+                        <h3 class="font-bold text-slate-800 mb-1.5 border-b pb-1">{{ groupName }}</h3>
+                        <p v-for="item in items" :key="item.key" class="mt-1 leading-snug">
+                            • {{ item.desc }}
+                        </p>
+                    </div>
+                </div>
+            </section>
 
         </main>
 
@@ -850,18 +774,49 @@
             </div>
         </div>
 
-        <!-- Footer Bersepadu -->
-        <footer class="bg-slate-800 text-slate-400 text-xs py-6 mt-12 border-t border-slate-700">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4">
-                <div class="text-center md:text-left">
-                    <p class="font-bold text-slate-300">KOLEJ UNIVERSITI ISLAM ANTARABANGSA SULTAN ISMAIL PETRA (KIAS)</p>
-                    <p class="mt-0.5 text-slate-500">Nilam Puri, Jalan Kuala Krai, 15730 Kota Bharu, Kelantan.</p>
+        <!-- MODAL EDIT SENARAI SEMAK FOLDER STANDARD (Dinamik & Boleh Dikemaskini) -->
+        <div v-if="showEditFoldersModal" class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 flex items-center justify-center p-4">
+            <div class="bg-white rounded-xl shadow-xl border p-6 max-w-3xl w-full space-y-4">
+                <div class="flex justify-between items-center border-b pb-2">
+                    <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
+                        <span>⚙️</span> Kemaskini Senarai Semak Folder Standard
+                    </h3>
+                    <button @click="showEditFoldersModal = false" class="text-slate-400 hover:text-slate-600">✕</button>
                 </div>
-                <div class="text-center md:text-right">
-                    <p>&copy; 2026 Unit Kualiti Akademik KIAS. Hak Cipta Terpelihara.</p>
+                <p class="text-xs text-slate-500 leading-relaxed">
+                    Anda boleh menukar label singkatan, nama kumpulan folder, dan keterangan huraian item saringan di bawah. 
+                    Perubahan ini akan dikemas kini serta-merta pada draf borang pensyarah, tapisan paparan, fail template CSV, dan draf laporan kualiti.
+                </p>
+                
+                <div class="max-h-[50vh] overflow-y-auto space-y-3 pr-1">
+                    <div v-for="(f, index) in folderSettings" :key="f.key" class="p-3 bg-slate-50 rounded-lg border border-slate-200 grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
+                        <div class="md:col-span-1 text-center font-bold text-slate-400 text-xs">#{{ index + 1 }}</div>
+                        <div class="md:col-span-3">
+                            <label class="block text-[9px] font-bold text-slate-400 uppercase">Kumpulan Folder</label>
+                            <input type="text" v-model="f.groupName" class="w-full p-1.5 border rounded text-xs font-semibold focus:ring-emerald-500" />
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-[9px] font-bold text-slate-400 uppercase">Kod Singkatan</label>
+                            <input type="text" v-model="f.label" class="w-full p-1.5 border rounded text-xs font-bold text-emerald-800 focus:ring-emerald-500" />
+                        </div>
+                        <div class="md:col-span-6">
+                            <label class="block text-[9px] font-bold text-slate-400 uppercase">Nama Penuh / Huraian Folder</label>
+                            <input type="text" v-model="f.desc" class="w-full p-1.5 border rounded text-xs focus:ring-emerald-500" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center pt-2 border-t">
+                    <button @click="resetFoldersToDefault" class="text-xs text-rose-600 hover:text-rose-800 font-bold border border-rose-200 hover:bg-rose-50 px-3 py-1.5 rounded-lg transition">
+                        Reset Ke Set Asal
+                    </button>
+                    <div class="flex gap-2">
+                        <button @click="showEditFoldersModal = false" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 rounded text-xs font-bold text-slate-700">Batal</button>
+                        <button @click="saveFoldersConfiguration" class="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded text-xs font-bold uppercase tracking-wider">Simpan Konfigurasi</button>
+                    </div>
                 </div>
             </div>
-        </footer>
+        </div>
 
     </div>
 
@@ -871,12 +826,32 @@
 
         createApp({
             setup() {
-                // Senarai Fakulti Dinamik (Boleh ditambah oleh pentadbir)
+                // Senarai Fakulti Dinamik
                 const dynamicFaculties = ref([
                     { id: "FPIB", name: "PENGAJIAN ISLAM DAN BAHASA ARAB" },
                     { id: "FPPI", name: "PENGURUSAN DAN PEMBANGUNAN INSAN" },
                     { id: "FSM", name: "SYARIAH DAN MUAMALAT" },
                     { id: "FUQS", name: "USULUDDIN DAN AL-QURAN & SUNNAH" }
+                ]);
+
+                // Tetapan Folder Semakan Standard Semasa (Boleh Dikemaskini / Edit oleh pengguna)
+                const folderSettings = ref([
+                    { key: "f1", label: "F1", groupName: "1. Labsheet Amali", desc: "Labsheet Amali / Bengkel" },
+                    { key: "f2_1", label: "F2.1", groupName: "2. Rancangan Pengajaran", desc: "2.1 Jadual Kuliah" },
+                    { key: "f2_2", label: "F2.2", groupName: "2. Rancangan Pengajaran", desc: "2.2 RP / Penjajaran Konstruktif (CA)" },
+                    { key: "f2_3", label: "F2.3", groupName: "2. Rancangan Pengajaran", desc: "2.3 Laporan Pertemuan Terperinci" },
+                    { key: "f3_1", label: "F3.1", groupName: "3. Rekod & Kehadiran", desc: "3.1 Senarai Pendaftaran Pelajar" },
+                    { key: "f3_2", label: "F3.2", groupName: "3. Rekod & Kehadiran", desc: "3.2 Rekod Kehadiran (Kuliah)" },
+                    { key: "f3_3", label: "F3.3", groupName: "3. Rekod & Kehadiran", desc: "3.3 Laporan Kehadiran Keseluruhan" },
+                    { key: "f4", label: "F4", groupName: "4. Moderation & Vetting", desc: "Laporan Moderation & Vetting Soalan" },
+                    { key: "f5_1", label: "F5.1", groupName: "5. Analisis Pengukuran", desc: "5.1 Laporan Markah" },
+                    { key: "f5_2", label: "F5.2", groupName: "5. Analisis Pengukuran", desc: "5.2 Laporan S3P" },
+                    { key: "f6", label: "F6", groupName: "6. JSU", desc: "Jadual Spesifikasi Ujian (JSU)" },
+                    { key: "f7_1", label: "F7.1", groupName: "7. PB & Peperiksaan Akhir", desc: "7.1 Set Soalan (PB)" },
+                    { key: "f7_2", label: "F7.2", groupName: "7. PB & Peperiksaan Akhir", desc: "7.2 Skema Pemarkahan" },
+                    { key: "f8", label: "F8", groupName: "8. Rubrik Penilaian", desc: "Rubrik Penilaian" },
+                    { key: "f9", label: "F9", groupName: "9. Penilaian Pelajar", desc: "Penilaian Pelajar Terhadap Staf (e-SuPP)" },
+                    { key: "f10", label: "F10", groupName: "10. Kuliah Online", desc: "Bukti/Rekod Pelajar Mengikuti Kuliah Online" }
                 ]);
 
                 // State Ref
@@ -901,12 +876,13 @@
                 const showAddSessionModal = ref(false);
                 const newSessionName = ref("");
 
-                // Modals untuk Edit Sesi & Tambah Fakulti
+                // Modals untuk Edit Sesi & Tambah Fakulti & Edit Folder
                 const showEditSessionModal = ref(false);
                 const editSessionName = ref("");
                 const showAddFacultyModal = ref(false);
                 const newFacultyId = ref("");
                 const newFacultyName = ref("");
+                const showEditFoldersModal = ref(false);
 
                 // Pangkalan data bermula kosong
                 const lecturers = ref([]);
@@ -921,24 +897,6 @@
                     connected: false
                 });
 
-                // Borang data struktur menyokong status YA/TIDAK/TB
-                const formData = ref({
-                    nama: '',
-                    jawatan: 'Pensyarah Tetap',
-                    fakulti: 'FPIB',
-                    senaraiKursus: [
-                        {
-                            kodKursus: '',
-                            catatan: '',
-                            folder: {
-                                f1: 'TIDAK', f2_1: 'TIDAK', f2_2: 'TIDAK', f2_3: 'TIDAK', f3_1: 'TIDAK',
-                                f3_2: 'TIDAK', f3_3: 'TIDAK', f4: 'TIDAK', f5_1: 'TIDAK', f5_2: 'TIDAK',
-                                f6: 'TIDAK', f7_1: 'TIDAK', f7_2: 'TIDAK', f8: 'TIDAK', f9: 'TIDAK', f10: 'TIDAK'
-                            }
-                        }
-                    ]
-                });
-
                 // Membina senarai dropdown fakulti secara dinamik
                 const faculties = computed(() => {
                     const base = [{ id: "ALL", name: "Semua Fakulti" }];
@@ -946,6 +904,26 @@
                         base.push({ id: f.id, name: `${f.name} (${f.id})` });
                     });
                     return base;
+                });
+
+                // Mengumpul folder settings mengikut Group Name
+                const groupedFolderSettings = computed(() => {
+                    const groups = {};
+                    folderSettings.value.forEach(item => {
+                        if (!groups[item.groupName]) {
+                            groups[item.groupName] = [];
+                        }
+                        groups[item.groupName].push(item);
+                    });
+                    return groups;
+                });
+
+                // Borang data struktur menyokong status YA/TIDAK/TB
+                const formData = ref({
+                    nama: '',
+                    jawatan: 'Pensyarah Tetap',
+                    fakulti: 'FPIB',
+                    senaraiKursus: []
                 });
 
                 // LocalStorage integration on mount
@@ -970,6 +948,14 @@
                     if (savedFaculties) {
                         try {
                             dynamicFaculties.value = JSON.parse(savedFaculties);
+                        } catch (e) {
+                            console.error(e);
+                        }
+                    }
+                    const savedFolders = localStorage.getItem("kias_folder_settings");
+                    if (savedFolders) {
+                        try {
+                            folderSettings.value = JSON.parse(savedFolders);
                         } catch (e) {
                             console.error(e);
                         }
@@ -1007,12 +993,11 @@
                 // Pengiraan Progres Kursus Tunggal (Melangkau TB)
                 const getCourseProgress = (kursus) => {
                     if (!kursus || !kursus.folder) return 0;
-                    const folderKeys = Object.keys(kursus.folder);
                     let countYA = 0;
                     let countTIDAK = 0;
                     
-                    folderKeys.forEach(key => {
-                        const status = kursus.folder[key];
+                    folderSettings.value.forEach(f => {
+                        const status = kursus.folder[f.key];
                         if (status === 'YA') countYA++;
                         if (status === 'TIDAK') countTIDAK++;
                     });
@@ -1036,7 +1021,7 @@
                 const isLecturerEmpty = (lecturer) => {
                     if (!lecturer.senaraiKursus || lecturer.senaraiKursus.length === 0) return true;
                     return lecturer.senaraiKursus.every(k => {
-                        return Object.values(k.folder).every(status => status === 'TIDAK');
+                        return folderSettings.value.every(f => k.folder[f.key] === 'TIDAK');
                     });
                 };
 
@@ -1085,6 +1070,40 @@
                     }
                 };
 
+                // Simpan Perubahan Konfigurasi Folder Semakan
+                const saveFoldersConfiguration = () => {
+                    localStorage.setItem("kias_folder_settings", JSON.stringify(folderSettings.value));
+                    showEditFoldersModal.value = false;
+                    showToast("Struktur senarai semak folder kualiti berjaya dikemaskini.");
+                };
+
+                // Set semula folder ke asal
+                const resetFoldersToDefault = () => {
+                    showCustomConfirm("Reset Struktur", "Adakah anda pasti mahu set semula senarai semak folder kepada standard asal?", () => {
+                        folderSettings.value = [
+                            { key: "f1", label: "F1", groupName: "1. Labsheet Amali", desc: "Labsheet Amali / Bengkel" },
+                            { key: "f2_1", label: "F2.1", groupName: "2. Rancangan Pengajaran", desc: "2.1 Jadual Kuliah" },
+                            { key: "f2_2", label: "F2.2", groupName: "2. Rancangan Pengajaran", desc: "2.2 RP / Penjajaran Konstruktif (CA)" },
+                            { key: "f2_3", label: "F2.3", groupName: "2. Rancangan Pengajaran", desc: "2.3 Laporan Pertemuan Terperinci" },
+                            { key: "f3_1", label: "F3.1", groupName: "3. Rekod & Kehadiran", desc: "3.1 Senarai Pendaftaran Pelajar" },
+                            { key: "f3_2", label: "F3.2", groupName: "3. Rekod & Kehadiran", desc: "3.2 Rekod Kehadiran (Kuliah)" },
+                            { key: "f3_3", label: "F3.3", groupName: "3. Rekod & Kehadiran", desc: "3.3 Laporan Kehadiran Keseluruhan" },
+                            { key: "f4", label: "F4", groupName: "4. Moderation & Vetting", desc: "Laporan Moderation & Vetting Soalan" },
+                            { key: "f5_1", label: "F5.1", groupName: "5. Analisis Pengukuran", desc: "5.1 Laporan Markah" },
+                            { key: "f5_2", label: "F5.2", groupName: "5. Analisis Pengukuran", desc: "5.2 Laporan S3P" },
+                            { key: "f6", label: "F6", groupName: "6. JSU", desc: "Jadual Spesifikasi Ujian (JSU)" },
+                            { key: "f7_1", label: "F7.1", groupName: "7. PB & Peperiksaan Akhir", desc: "7.1 Set Soalan (PB)" },
+                            { key: "f7_2", label: "F7.2", groupName: "7. PB & Peperiksaan Akhir", desc: "7.2 Skema Pemarkahan" },
+                            { key: "f8", label: "F8", groupName: "8. Rubrik Penilaian", desc: "Rubrik Penilaian" },
+                            { key: "f9", label: "F9", groupName: "9. Penilaian Pelajar", desc: "Penilaian Pelajar Terhadap Staf (e-SuPP)" },
+                            { key: "f10", label: "F10", groupName: "10. Kuliah Online", desc: "Bukti/Rekod Pelajar Mengikuti Kuliah Online" }
+                        ];
+                        localStorage.setItem("kias_folder_settings", JSON.stringify(folderSettings.value));
+                        showEditFoldersModal.value = false;
+                        showToast("Struktur folder diset semula ke konfigurasi asal.");
+                    });
+                };
+
                 // Tambah Fakulti Baru
                 const addNewFaculty = () => {
                     if (!newFacultyId.value.trim() || !newFacultyName.value.trim()) {
@@ -1108,7 +1127,7 @@
                     showToast("Fakulti / Pusat Pengajian baharu berjaya ditambah.");
                 };
 
-                // Reset Saringan
+                // Reset Saringan Serta Penapis
                 const resetFilters = () => {
                     selectedFakulti.value = "ALL";
                     searchTerm.value = "";
@@ -1118,14 +1137,14 @@
 
                 // Tambah kursus ke dalam borang input dinamik
                 const addNewCourseToForm = () => {
+                    const cleanFolder = {};
+                    folderSettings.value.forEach(f => {
+                        cleanFolder[f.key] = 'TIDAK';
+                    });
                     formData.value.senaraiKursus.push({
                         kodKursus: '',
                         catatan: '',
-                        folder: {
-                            f1: 'TIDAK', f2_1: 'TIDAK', f2_2: 'TIDAK', f2_3: 'TIDAK', f3_1: 'TIDAK',
-                            f3_2: 'TIDAK', f3_3: 'TIDAK', f4: 'TIDAK', f5_1: 'TIDAK', f5_2: 'TIDAK',
-                            f6: 'TIDAK', f7_1: 'TIDAK', f7_2: 'TIDAK', f8: 'TIDAK', f9: 'TIDAK', f10: 'TIDAK'
-                        }
+                        folder: cleanFolder
                     });
                     activeFormCourseIndex.value = formData.value.senaraiKursus.length - 1;
                     showToast("Slot kursus baharu ditambah.");
@@ -1154,34 +1173,23 @@
                 // Buka borang untuk disunting (Deep Copy Perfect Fix)
                 const handleEdit = (lecturer) => {
                     editingLecturer.value = lecturer;
-                    // Sediakan salinan mendalam (deep copy) bebas rujukan loop Vue
                     const cleanCloned = JSON.parse(JSON.stringify(lecturer));
+                    
                     formData.value = {
                         nama: cleanCloned.nama,
                         jawatan: cleanCloned.jawatan,
                         fakulti: cleanCloned.fakulti,
-                        senaraiKursus: cleanCloned.senaraiKursus.map(k => ({
-                            kodKursus: k.kodKursus,
-                            catatan: k.catatan || '',
-                            folder: {
-                                f1: k.folder.f1 || 'TIDAK',
-                                f2_1: k.folder.f2_1 || 'TIDAK',
-                                f2_2: k.folder.f2_2 || 'TIDAK',
-                                f2_3: k.folder.f2_3 || 'TIDAK',
-                                f3_1: k.folder.f3_1 || 'TIDAK',
-                                f3_2: k.folder.f3_2 || 'TIDAK',
-                                f3_3: k.folder.f3_3 || 'TIDAK',
-                                f4: k.folder.f4 || 'TIDAK',
-                                f5_1: k.folder.f5_1 || 'TIDAK',
-                                f5_2: k.folder.f5_2 || 'TIDAK',
-                                f6: k.folder.f6 || 'TIDAK',
-                                f7_1: k.folder.f7_1 || 'TIDAK',
-                                f7_2: k.folder.f7_2 || 'TIDAK',
-                                f8: k.folder.f8 || 'TIDAK',
-                                f9: k.folder.f9 || 'TIDAK',
-                                f10: k.folder.f10 || 'TIDAK'
-                            }
-                        }))
+                        senaraiKursus: cleanCloned.senaraiKursus.map(k => {
+                            const currentFolders = {};
+                            folderSettings.value.forEach(f => {
+                                currentFolders[f.key] = k.folder[f.key] || 'TIDAK';
+                            });
+                            return {
+                                kodKursus: k.kodKursus,
+                                catatan: k.catatan || '',
+                                folder: currentFolders
+                            };
+                        })
                     };
                     activeFormCourseIndex.value = 0;
                     isAdding.value = true;
@@ -1189,6 +1197,10 @@
                 };
 
                 const resetFormData = () => {
+                    const cleanFolder = {};
+                    folderSettings.value.forEach(f => {
+                        cleanFolder[f.key] = 'TIDAK';
+                    });
                     formData.value = {
                         nama: '',
                         jawatan: 'Pensyarah Tetap',
@@ -1197,11 +1209,7 @@
                             {
                                 kodKursus: '',
                                 catatan: '',
-                                folder: {
-                                    f1: 'TIDAK', f2_1: 'TIDAK', f2_2: 'TIDAK', f2_3: 'TIDAK', f3_1: 'TIDAK',
-                                    f3_2: 'TIDAK', f3_3: 'TIDAK', f4: 'TIDAK', f5_1: 'TIDAK', f5_2: 'TIDAK',
-                                    f6: 'TIDAK', f7_1: 'TIDAK', f7_2: 'TIDAK', f8: 'TIDAK', f9: 'TIDAK', f10: 'TIDAK'
-                                }
+                                folder: cleanFolder
                             }
                         ]
                     };
@@ -1270,24 +1278,11 @@
                 };
 
                 const getFolderStatusMapForCourse = (kursus) => {
-                    return [
-                        { label: "F1", active: kursus.folder.f1 },
-                        { label: "F2.1", active: kursus.folder.f2_1 },
-                        { label: "F2.2", active: kursus.folder.f2_2 },
-                        { label: "F2.3", active: kursus.folder.f2_3 },
-                        { label: "F3.1", active: kursus.folder.f3_1 },
-                        { label: "F3.2", active: kursus.folder.f3_2 },
-                        { label: "F3.3", active: kursus.folder.f3_3 },
-                        { label: "F4", active: kursus.folder.f4 },
-                        { label: "F5.1", active: kursus.folder.f5_1 },
-                        { label: "F5.2", active: kursus.folder.f5_2 },
-                        { label: "F6", active: kursus.folder.f6 },
-                        { label: "F7.1", active: kursus.folder.f7_1 },
-                        { label: "F7.2", active: kursus.folder.f7_2 },
-                        { label: "F8", active: kursus.folder.f8 },
-                        { label: "F9", active: kursus.folder.f9 },
-                        { label: "F10", active: kursus.folder.f10 },
-                    ];
+                    return folderSettings.value.map(f => ({
+                        label: f.label,
+                        active: (kursus.folder && kursus.folder[f.key]) || 'TIDAK',
+                        desc: f.desc
+                    }));
                 };
 
                 // Penapisan Tersuai Pensyarah (Grouped)
@@ -1319,7 +1314,7 @@
                     return lecturers.value.reduce((acc, curr) => acc + (curr.senaraiKursus ? curr.senaraiKursus.length : 0), 0);
                 });
 
-                // Penyelarasan Statistik Fakulti Dinamik mengikut data berbilang subjek dan fakulti dinamik
+                // Penyelarasan Statistik Fakulti Dinamik
                 watch([lecturers, dynamicFaculties], () => {
                     const updatedStats = dynamicFaculties.value.map((f, index) => {
                         const lecturersInFaculty = lecturers.value.filter(l => l.fakulti === f.id);
@@ -1462,27 +1457,30 @@
                                 return 'TIDAK';
                             };
 
+                            const folderData = {};
+                            folderSettings.value.forEach(f => {
+                                const possibleKeys = [
+                                    f.key, 
+                                    `Folder${f.key.replace('f', '')}`, 
+                                    f.label,
+                                    f.label.replace(/\./g, '_'),
+                                    f.label.toLowerCase()
+                                ];
+                                
+                                let foundVal = 'TIDAK';
+                                for (const pk of possibleKeys) {
+                                    if (item[pk] !== undefined) {
+                                        foundVal = mapStatusValue(item[pk]);
+                                        break;
+                                    }
+                                }
+                                folderData[f.key] = foundVal;
+                            });
+
                             tempLecturerMap[currentName].senaraiKursus.push({
                                 kodKursus: currentKod,
                                 catatan: item.Catatan || "",
-                                folder: {
-                                    f1: mapStatusValue(item.Folder1 || item.f1),
-                                    f2_1: mapStatusValue(item.Folder2_1 || item.f2_1),
-                                    f2_2: mapStatusValue(item.Folder2_2 || item.f2_2),
-                                    f2_3: mapStatusValue(item.Folder2_3 || item.f2_3),
-                                    f3_1: mapStatusValue(item.Folder3_1 || item.f3_1),
-                                    f3_2: mapStatusValue(item.Folder3_2 || item.f3_2),
-                                    f3_3: mapStatusValue(item.Folder3_3 || item.f3_3),
-                                    f4: mapStatusValue(item.Folder4 || item.f4),
-                                    f5_1: mapStatusValue(item.Folder5_1 || item.f5_1),
-                                    f5_2: mapStatusValue(item.Folder5_2 || item.f5_2),
-                                    f6: mapStatusValue(item.Folder6 || item.f6),
-                                    f7_1: mapStatusValue(item.Folder7_1 || item.f7_1),
-                                    f7_2: mapStatusValue(item.Folder7_2 || item.f7_2),
-                                    f8: mapStatusValue(item.Folder8 || item.f8),
-                                    f9: mapStatusValue(item.Folder9 || item.f9),
-                                    f10: mapStatusValue(item.Folder10 || item.f10)
-                                }
+                                folder: folderData
                             });
                         }
 
@@ -1502,10 +1500,11 @@
                 };
 
                 const downloadCSVTemplate = () => {
+                    const colKeys = folderSettings.value.map(f => f.key).join(",");
                     const csvContent = "data:text/csv;charset=utf-8," 
-                        + "Nama,Jawatan,Fakulti,KodKursus,Folder1,Folder2_1,Folder2_2,Folder2_3,Folder3_1,Folder3_2,Folder3_3,Folder4,Folder5_1,Folder5_2,Folder6,Folder7_1,Folder7_2,Folder8,Folder9,Folder10,Catatan\n"
-                        + "Ustaz Mohd Khairul bin Ali,Pensyarah Tetap,FPIB,MPU3122,YA,YA,YA,YA,YA,YA,YA,YA,YA,YA,YA,YA,YA,YA,YA,TIDAK,Kemas kini folder 10\n"
-                        + ",,,PIA0254,TB,YA,YA,YA,YA,YA,YA,YA,YA,YA,YA,YA,YA,YA,YA,TB,Perlu semakan semula markah";
+                        + `Nama,Jawatan,Fakulti,KodKursus,${colKeys},Catatan\n`
+                        + `Ustaz Mohd Khairul bin Ali,Pensyarah Tetap,FPIB,MPU3122,${folderSettings.value.map(() => 'YA').join(",")},Kemas kini folder 10\n`
+                        + `,,,PIA0254,${folderSettings.value.map((f, i) => i === 0 ? 'TB' : 'YA').join(",")},Perlu semakan semula markah`;
                     
                     const encodedUri = encodeURI(csvContent);
                     const link = document.createElement("a");
@@ -1519,6 +1518,14 @@
 
                 // --- DATA DEMO UNTUK PENGUJIAN ---
                 const loadDemoData = () => {
+                    const getSampleFolder = (overrides = {}) => {
+                        const base = {};
+                        folderSettings.value.forEach(f => {
+                            base[f.key] = overrides[f.key] || 'YA';
+                        });
+                        return base;
+                    };
+
                     lecturers.value = [
                         {
                             id: "demo-1",
@@ -1529,12 +1536,12 @@
                                 {
                                     kodKursus: "MPU2133",
                                     catatan: "Lengkap dan disahkan",
-                                    folder: { f1: "YA", f2_1: "YA", f2_2: "YA", f2_3: "YA", f3_1: "YA", f3_2: "YA", f3_3: "YA", f4: "YA", f5_1: "YA", f5_2: "YA", f6: "YA", f7_1: "YA", f7_2: "YA", f8: "YA", f9: "YA", f10: "YA" }
+                                    folder: getSampleFolder()
                                 },
                                 {
                                     kodKursus: "MPU3452-KB1",
                                     catatan: "Kemas kini S3P",
-                                    folder: { f1: "YA", f2_1: "YA", f2_2: "YA", f2_3: "YA", f3_1: "YA", f3_2: "YA", f3_3: "YA", f4: "YA", f5_1: "YA", f5_2: "TIDAK", f6: "YA", f7_1: "YA", f7_2: "YA", f8: "YA", f9: "YA", f10: "YA" }
+                                    folder: getSampleFolder({ f5_2: "TIDAK" })
                                 }
                             ]
                         },
@@ -1546,8 +1553,8 @@
                             senaraiKursus: [
                                 {
                                     kodKursus: "PIA0254",
-                                    catatan: "Rubrik tidak berkaitan untuk kursus teori ini",
-                                    folder: { f1: "TB", f2_1: "YA", f2_2: "YA", f2_3: "YA", f3_1: "YA", f3_2: "YA", f3_3: "YA", f4: "YA", f5_1: "YA", f5_2: "YA", f6: "YA", f7_1: "YA", f7_2: "YA", f8: "TB", f9: "YA", f10: "TB" }
+                                    catatan: "Beberapa tugasan amali tidak berkaitan",
+                                    folder: getSampleFolder({ f1: "TB", f8: "TB", f10: "TB" })
                                 }
                             ]
                         },
@@ -1560,7 +1567,7 @@
                                 {
                                     kodKursus: "MPU2233",
                                     catatan: "Menunggu rubrik penilaian",
-                                    folder: { f1: "TIDAK", f2_1: "YA", f2_2: "YA", f2_3: "TIDAK", f3_1: "YA", f3_2: "YA", f3_3: "TIDAK", f4: "TIDAK", f5_1: "TIDAK", f5_2: "TIDAK", f6: "YA", f7_1: "YA", f7_2: "YA", f8: "TIDAK", f9: "TIDAK", f10: "TIDAK" }
+                                    folder: getSampleFolder({ f1: "TIDAK", f2_3: "TIDAK", f3_3: "TIDAK", f4: "TIDAK", f5_1: "TIDAK", f5_2: "TIDAK", f8: "TIDAK", f9: "TIDAK", f10: "TIDAK" })
                                 }
                             ]
                         }
@@ -1749,7 +1756,12 @@
                     showAddFacultyModal,
                     newFacultyId,
                     newFacultyName,
-                    addNewFaculty
+                    addNewFaculty,
+                    folderSettings,
+                    groupedFolderSettings,
+                    showEditFoldersModal,
+                    saveFoldersConfiguration,
+                    resetFoldersToDefault
                 };
             }
         }).mount('#app');
