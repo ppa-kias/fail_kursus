@@ -107,7 +107,7 @@
                                 @error="handleLogoError"
                                 ref="logoImg"
                             />
-                            <!-- Fallback Emblem Graphic (Hanya keluar jika imej gagal dimuat naik) -->
+                            <!-- Fallback Emblem Graphic -->
                             <div v-if="logoFailed" class="absolute inset-0 bg-emerald-700 flex items-center justify-center text-white text-[10px] font-bold">
                                 <svg class="w-8 h-8 text-amber-400" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M50 5 L85 20 V55 C85 75 50 92 50 92 C50 92 15 75 15 55 V20 L50 5 Z" fill="#047857" stroke="#ffffff" stroke-width="2"/>
@@ -269,7 +269,7 @@
                         <div>
                             <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Jumlah Fail Kursus</p>
                             <h3 class="text-2xl font-bold text-rose-600">{{ totalTaughtCourses }} Fail</h3>
-                            <p class="text-xs text-slate-500 mt-1">Keseluruhan subjek</p>
+                            <p class="text-xs text-slate-550 mt-1">Keseluruhan subjek</p>
                         </div>
                     </div>
                 </section>
@@ -400,7 +400,7 @@
                     </form>
                 </section>
 
-                <!-- Jadual Analisis Mengikut Fakulti (Dinamik) -->
+                <!-- Jadual Analisis Mengikut Fakulti (Dinamik dengan Tindakan Sunting) -->
                 <section class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                     <div class="bg-kias-800 px-6 py-4 border-b border-emerald-900 flex justify-between items-center text-white">
                         <h2 class="text-sm font-bold uppercase tracking-wider">1. Analisis Kualiti Fail Mengikut Fakulti ({{ selectedSemester }})</h2>
@@ -416,6 +416,7 @@
                                     <th class="px-6 py-3.5 text-center text-amber-700 bg-amber-50/50">Belum Selesai Semua</th>
                                     <th class="px-6 py-3.5 text-center text-rose-700 bg-rose-50/50">Belum Hantar Langsung</th>
                                     <th class="px-6 py-3.5 text-center">Kadar Pensyarah Selesai (%)</th>
+                                    <th class="px-6 py-3.5 text-center">Tindakan</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100 font-medium text-slate-700">
@@ -434,6 +435,16 @@
                                             </div>
                                         </div>
                                     </td>
+                                    <!-- BUTANG EDIT UNTUK FAKULTI STANDARD -->
+                                    <td class="px-6 py-4 text-center">
+                                        <button 
+                                            @click="openEditFacultyModal(row)" 
+                                            class="px-2.5 py-1 text-xs font-bold text-amber-700 hover:text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded transition"
+                                            title="Sunting Maklumat Fakulti"
+                                        >
+                                            ✏️ Edit
+                                        </button>
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>
@@ -451,7 +462,7 @@
                             <div class="flex flex-wrap gap-2">
                                 <!-- BUTANG EDIT SENARAI SEMAK FOLDER -->
                                 <button @click="showEditFoldersModal = true" class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-lg transition uppercase tracking-wider shadow-sm flex items-center gap-1">
-                                    ⚙️ Urus Urutan Folder
+                                    ⚙️ Urus Folder
                                 </button>
                                 <button @click="openAddForm" class="px-4 py-2 bg-emerald-750 hover:bg-emerald-800 text-emerald-800 hover:text-emerald-900 border border-emerald-300 bg-emerald-50 text-xs font-bold rounded-lg transition uppercase tracking-wider shadow-sm">Tambah Pensyarah Baru</button>
                                 <button @click="generatePDFReport" class="px-4 py-2 bg-rose-700 hover:bg-rose-800 text-white text-xs font-bold rounded-lg transition uppercase tracking-wider shadow">Muat Turun PDF Laporan</button>
@@ -774,9 +785,36 @@
             </div>
         </div>
 
-        <!-- MODAL EDIT SENARAI SEMAK FOLDER STANDARD (Dinamik & Boleh Dikemaskini) -->
+        <!-- MODAL EDIT SESEBUAH FAKULTI / PUSAT SEDIA ADA -->
+        <div v-if="showEditFacultyModal" class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 flex items-center justify-center p-4">
+            <div class="bg-white rounded-xl shadow-xl border p-6 max-w-md w-full space-y-4">
+                <div class="flex justify-between items-center border-b pb-2">
+                    <h3 class="font-bold text-slate-800">Ubah Maklumat Fakulti / Pusat</h3>
+                    <button @click="showEditFacultyModal = false" class="text-slate-400">✕</button>
+                </div>
+                <div class="space-y-3" v-if="editingFaculty">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Singkatan / Kod Fakulti</label>
+                        <input type="text" v-model="editingFaculty.id" class="w-full bg-slate-50 border rounded-lg p-2.5 text-sm font-semibold focus:ring-emerald-500 uppercase" />
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Nama Penuh Fakulti / Pusat</label>
+                        <input type="text" v-model="editingFaculty.name" class="w-full bg-slate-50 border rounded-lg p-2.5 text-sm font-semibold focus:ring-emerald-500 uppercase" />
+                    </div>
+                    <p class="text-[10px] text-amber-600 font-semibold leading-relaxed">
+                        *Nota: Menukar kod singkatan fakulti di sini akan mengemas kini kod fakulti semua rekod pensyarah yang dikaitkan di bawahnya secara automatik.
+                    </p>
+                </div>
+                <div class="flex justify-end gap-2">
+                    <button @click="showEditFacultyModal = false" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 rounded text-xs font-bold text-slate-700">Batal</button>
+                    <button @click="updateFaculty" class="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded text-xs font-bold uppercase tracking-wider">Simpan Perubahan</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL EDIT SENARAI SEMAK FOLDER STANDARD (Dinamik & Boleh Dikemaskini / Tambah / Padam) -->
         <div v-if="showEditFoldersModal" class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 flex items-center justify-center p-4">
-            <div class="bg-white rounded-xl shadow-xl border p-6 max-w-3xl w-full space-y-4">
+            <div class="bg-white rounded-xl shadow-xl border p-6 max-w-4xl w-full space-y-4">
                 <div class="flex justify-between items-center border-b pb-2">
                     <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
                         <span>⚙️</span> Kemaskini Senarai Semak Folder Standard
@@ -784,11 +822,18 @@
                     <button @click="showEditFoldersModal = false" class="text-slate-400 hover:text-slate-600">✕</button>
                 </div>
                 <p class="text-xs text-slate-500 leading-relaxed">
-                    Anda boleh menukar label singkatan, nama kumpulan folder, dan keterangan huraian item saringan di bawah. 
-                    Perubahan ini akan dikemas kini serta-merta pada draf borang pensyarah, tapisan paparan, fail template CSV, dan draf laporan kualiti.
+                    Anda boleh menukar label singkatan, nama kumpulan folder, dan huraian item saringan di bawah. 
+                    Gunakan butang tambah untuk menambah folder baru, atau butang padam di sebelah kanan untuk mengurangkan folder. Perubahan ini akan dikemas kini serta-merta pada borang, paparan draf, draf laporan kualiti, dan templat muat turun CSV.
                 </p>
                 
-                <div class="max-h-[50vh] overflow-y-auto space-y-3 pr-1">
+                <!-- Butang Tambah Item Folder Baru -->
+                <div class="flex justify-end">
+                    <button type="button" @click="addNewFolderSetting" class="bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs px-3.5 py-2 rounded-lg flex items-center gap-1.5 transition shadow-xs">
+                        <span>＋</span> Tambah Item Folder Baru
+                    </button>
+                </div>
+                
+                <div class="max-h-[45vh] overflow-y-auto space-y-3 pr-1">
                     <div v-for="(f, index) in folderSettings" :key="f.key" class="p-3 bg-slate-50 rounded-lg border border-slate-200 grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
                         <div class="md:col-span-1 text-center font-bold text-slate-400 text-xs">#{{ index + 1 }}</div>
                         <div class="md:col-span-3">
@@ -799,9 +844,14 @@
                             <label class="block text-[9px] font-bold text-slate-400 uppercase">Kod Singkatan</label>
                             <input type="text" v-model="f.label" class="w-full p-1.5 border rounded text-xs font-bold text-emerald-800 focus:ring-emerald-500" />
                         </div>
-                        <div class="md:col-span-6">
+                        <div class="md:col-span-5">
                             <label class="block text-[9px] font-bold text-slate-400 uppercase">Nama Penuh / Huraian Folder</label>
                             <input type="text" v-model="f.desc" class="w-full p-1.5 border rounded text-xs focus:ring-emerald-500" />
+                        </div>
+                        <div class="md:col-span-1 text-center self-end pb-0.5">
+                            <button type="button" @click="removeFolderSetting(index)" class="p-1.5 text-rose-600 hover:bg-rose-50 border border-rose-200 hover:border-rose-350 rounded-lg transition" title="Padam Item Folder">
+                                🗑️
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -884,10 +934,15 @@
                 const newFacultyName = ref("");
                 const showEditFoldersModal = ref(false);
 
+                // Edit Fakulti khusus
+                const showEditFacultyModal = ref(false);
+                const editingFaculty = ref(null);
+
                 // Pangkalan data bermula kosong
                 const lecturers = ref([]);
                 const stats = ref([]);
 
+                // Keadaan suntingan pensyarah (Penyelesaian Ralat ReferenceError)
                 const isAdding = ref(false);
                 const editingLecturer = ref(null);
 
@@ -1070,8 +1125,36 @@
                     }
                 };
 
+                // Tambah Draf Item Folder Baru
+                const addNewFolderSetting = () => {
+                    const nextNum = folderSettings.value.length + 1;
+                    const newKey = "f_cust_" + Date.now() + "_" + Math.random().toString(36).substr(2, 4);
+                    folderSettings.value.push({
+                        key: newKey,
+                        label: "F" + nextNum,
+                        groupName: "11. Folder Tambahan",
+                        desc: "Folder Kualiti Baharu " + nextNum
+                    });
+                    showToast("Satu baris folder baharu telah ditambah ke dalam senarai draf.");
+                };
+
+                // Padam Draf Item Folder
+                const removeFolderSetting = (index) => {
+                    if (folderSettings.value.length <= 1) {
+                        showCustomAlert("Ralat Pembuangan", "Sistem memerlukan sekurang-kurangnya satu folder standard untuk berfungsi.");
+                        return;
+                    }
+                    folderSettings.value.splice(index, 1);
+                    showToast("Item folder dibuang daripada draf.", "warning");
+                };
+
                 // Simpan Perubahan Konfigurasi Folder Semakan
                 const saveFoldersConfiguration = () => {
+                    folderSettings.value.forEach((f, idx) => {
+                        f.label = f.label.trim();
+                        f.groupName = f.groupName.trim();
+                        f.desc = f.desc.trim();
+                    });
                     localStorage.setItem("kias_folder_settings", JSON.stringify(folderSettings.value));
                     showEditFoldersModal.value = false;
                     showToast("Struktur senarai semak folder kualiti berjaya dikemaskini.");
@@ -1125,6 +1208,54 @@
                     newFacultyId.value = "";
                     newFacultyName.value = "";
                     showToast("Fakulti / Pusat Pengajian baharu berjaya ditambah.");
+                };
+
+                // --- FUNGSI EDIT FAKULTI ---
+                const openEditFacultyModal = (row) => {
+                    editingFaculty.value = {
+                        originalId: row.singkatan,
+                        id: row.singkatan,
+                        name: row.fakulti
+                    };
+                    showEditFacultyModal.value = true;
+                };
+
+                const updateFaculty = () => {
+                    if (!editingFaculty.value.id.trim() || !editingFaculty.value.name.trim()) {
+                        showCustomAlert("Input Tidak Sah", "Sila isi singkatan dan nama penuh fakulti!");
+                        return;
+                    }
+                    
+                    const oldId = editingFaculty.value.originalId;
+                    const newId = editingFaculty.value.id.toUpperCase().trim();
+                    const newName = editingFaculty.value.name.toUpperCase().trim();
+
+                    // Semak jika ID ditukar dan bertembung dengan ID fakulti lain yang sedia ada
+                    if (oldId !== newId && dynamicFaculties.value.some(f => f.id === newId)) {
+                        showCustomAlert("Singkatan Digunakan", "Kod singkatan fakulti ini sudah digunakan oleh fakulti lain!");
+                        return;
+                    }
+
+                    // Kemaskini dalam senarai dynamicFaculties
+                    const fIdx = dynamicFaculties.value.findIndex(f => f.id === oldId);
+                    if (fIdx !== -1) {
+                        dynamicFaculties.value[fIdx] = { id: newId, name: newName };
+                    }
+
+                    // Kemaskini hubung kait kod fakulti di profil pensyarah supaya data tidak tempang
+                    lecturers.value.forEach(l => {
+                        if (l.fakulti === oldId) {
+                            l.fakulti = newId;
+                        }
+                    });
+
+                    // Simpan terus ke localStorage
+                    localStorage.setItem("kias_dynamic_faculties", JSON.stringify(dynamicFaculties.value));
+                    localStorage.setItem("kias_3state_lecturers_v2", JSON.stringify(lecturers.value));
+
+                    showEditFacultyModal.value = false;
+                    editingFaculty.value = null;
+                    showToast("Maklumat fakulti / pusat pengajian berjaya dikemaskini.");
                 };
 
                 // Reset Saringan Serta Penapis
@@ -1593,7 +1724,6 @@
 
                     doc.setFont("Helvetica", "bold");
                     doc.setFontSize(14);
-                    doc.setTextColor(30, 41, 59);
                     doc.text("KOLEJ UNIVERSITI ISLAM ANTARABANGSA SULTAN ISMAIL PETRA (KIAS)", 15, 18);
                     
                     doc.setFont("Helvetica", "normal");
@@ -1606,6 +1736,7 @@
 
                     // Analisis Ringkasan Fakulti
                     doc.setFont("Helvetica", "bold");
+                    doc.setTextColor(30, 41, 59);
                     doc.text("1. RINGKASAN SESI MENGIKUT FAKULTI (Status Pensyarah Selesai Semua)", 15, 35);
 
                     const statsHeaders = [["BIL", "FAKULTI", "JUMLAH PENSYARAH", "SELESAI SEMUA SUBJEK", "BELUM SELESAI SEMUA", "KADAR KELULUSAN"]];
@@ -1761,7 +1892,13 @@
                     groupedFolderSettings,
                     showEditFoldersModal,
                     saveFoldersConfiguration,
-                    resetFoldersToDefault
+                    resetFoldersToDefault,
+                    addNewFolderSetting,
+                    removeFolderSetting,
+                    showEditFacultyModal,
+                    editingFaculty,
+                    openEditFacultyModal,
+                    updateFaculty
                 };
             }
         }).mount('#app');
