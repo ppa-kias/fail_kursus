@@ -65,6 +65,30 @@
             </div>
         </transition>
 
+        <!-- Custom Confirmation & Alert Dialog Modals -->
+        <!-- Alert Modal -->
+        <div v-if="customAlert.show" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+          <div class="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4">
+            <h4 class="font-bold text-lg text-slate-800">{{ customAlert.title }}</h4>
+            <p class="text-slate-600 text-sm leading-relaxed">{{ customAlert.message }}</p>
+            <div class="flex justify-end">
+              <button @click="customAlert.show = false" class="bg-kias-800 hover:bg-kias-900 text-white text-xs font-bold px-5 py-2.5 rounded-xl">Faham</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Confirm Modal -->
+        <div v-if="customConfirm.show" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+          <div class="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4">
+            <h4 class="font-bold text-lg text-slate-800">{{ customConfirm.title }}</h4>
+            <p class="text-slate-600 text-sm leading-relaxed">{{ customConfirm.message }}</p>
+            <div class="flex justify-end gap-2.5">
+              <button @click="customConfirm.show = false" class="border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold px-4 py-2.5 rounded-xl">Batal</button>
+              <button @click="executeCustomConfirm" class="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl">Seterusnya</button>
+            </div>
+          </div>
+        </div>
+
         <!-- Header Utama KIAS dengan Logo PPA & KIAS Baru (Segi Empat Tepat) -->
         <header class="bg-kias-800 text-white shadow-md border-b-4 border-emerald-600">
             <div class="max-w-7xl mx-auto px-4 py-5 sm:px-6 lg:px-8 flex flex-col lg:flex-row justify-between items-center gap-4">
@@ -74,7 +98,7 @@
                     <!-- Integrasi Logo daripada Google Drive Pautan Anda -->
                     <div class="flex items-center gap-3 bg-white/10 p-2 rounded-xl border border-white/25 shadow-inner">
                         
-                        <!-- Logo Image Container (Segi Empat Tepat: w-36 h-14) -->
+                        <!-- Logo Image Container (Ditukar kepada bentuk Segi Empat Tepat: w-36 h-14) -->
                         <div class="relative w-36 h-14 bg-white rounded-lg p-1.5 flex items-center justify-center overflow-hidden shadow-sm">
                             <img 
                                 src="https://lh3.googleusercontent.com/d/1Z_Vcc2Ism_XGAC2dnUIL2AM6QI93zzC-" 
@@ -137,12 +161,30 @@
                         </select>
                         <button 
                             @click="showAddSessionModal = true"
-                            class="p-2.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-lg text-slate-700"
+                            class="p-2.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-lg text-slate-750"
                             title="Tambah Sesi Akademik Baru"
                         >
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                             </svg>
+                        </button>
+                        <!-- BUTANG EDIT SESI AKADEMIK SEMASA -->
+                        <button 
+                            @click="openEditSessionModal"
+                            class="p-2.5 bg-amber-50 hover:bg-amber-100 border border-amber-300 rounded-lg text-amber-700"
+                            title="Edit Sesi Akademik Semasa"
+                        >
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+                            </svg>
+                        </button>
+                        <!-- BUTANG TAMBAH FAKULTI / PUSAT -->
+                        <button 
+                            @click="showAddFacultyModal = true"
+                            class="p-2 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 rounded-lg text-emerald-800 flex items-center gap-1 text-xs font-bold shrink-0"
+                            title="Tambah Fakulti / Pusat Pengajian Baru"
+                        >
+                            🏛️ + Fakulti
                         </button>
                     </div>
                 </div>
@@ -159,7 +201,7 @@
                         @click="activeTab = 'data-importer'"
                         :class="['px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-lg border transition-all', activeTab === 'data-importer' ? 'bg-emerald-800 text-white border-emerald-800' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50']"
                     >
-                        Muat Naik CSV
+                        Muat Naik CSV / Excel
                     </button>
                     <button 
                         @click="activeTab = 'database-integration'"
@@ -193,7 +235,7 @@
                     </div>
 
                     <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex items-center gap-4">
-                        <div class="p-3.5 bg-emerald-50 text-emerald-700 rounded-lg">
+                        <div class="p-3.5 bg-emerald-50 text-emerald-755 rounded-lg">
                             <svg class="w-7 h-7 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
@@ -214,7 +256,7 @@
                         <div>
                             <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Belum Lengkap</p>
                             <h3 class="text-2xl font-bold text-amber-600">{{ totalProgres }} orang</h3>
-                            <p class="text-xs text-slate-500 mt-1">Terdapat kursus tertunggak</p>
+                            <p class="text-xs text-slate-550 mt-1">Terdapat subjek tertunggak</p>
                         </div>
                     </div>
 
@@ -261,12 +303,9 @@
                                 </select>
                             </div>
                             <div>
-                                <label class="block mb-1.5 text-xs font-bold text-slate-700 uppercase">Fakulti</label>
+                                <label class="block mb-1.5 text-xs font-bold text-slate-700 uppercase">Fakulti / Jabatan</label>
                                 <select v-model="formData.fakulti" class="w-full bg-slate-50 border border-slate-300 text-slate-900 text-sm rounded-lg p-2.5 focus:ring-emerald-500">
-                                    <option value="FPIB">Pengajian Islam & Bahasa Arab (FPIB)</option>
-                                    <option value="FPPI">Pengurusan & Pembangunan Insan (FPPI)</option>
-                                    <option value="FSM">Syariah & Muamalat (FSM)</option>
-                                    <option value="FUQS">Usuluddin & Al-Quran & Sunnah (FUQS)</option>
+                                    <option v-for="f in dynamicFaculties" :key="f.id" :value="f.id">{{ f.name }} ({{ f.id }})</option>
                                 </select>
                             </div>
                         </div>
@@ -329,67 +368,124 @@
                                     <div class="flex justify-between items-center border-b pb-1">
                                         <span class="text-xs font-bold text-slate-600">Senarai Semak 10 Folder Standard ({{ formData.senaraiKursus[activeFormCourseIndex].kodKursus || 'Subjek Ini' }})</span>
                                         <div class="flex gap-1.5">
-                                            <button type="button" @click="handleSelectAllFolders(true)" class="text-[10px] bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded border">Pilih Semua</button>
-                                            <button type="button" @click="handleSelectAllFolders(false)" class="text-[10px] bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded border">Padam Semua</button>
+                                            <button type="button" @click="handleSelectAllFolders('YA')" class="text-[10px] bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded border">Pilih Semua YA</button>
+                                            <button type="button" @click="handleSelectAllFolders('TB')" class="text-[10px] bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded border">Set Semua TB</button>
+                                            <button type="button" @click="handleSelectAllFolders('TIDAK')" class="text-[10px] bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded border">Padam Semua</button>
                                         </div>
                                     </div>
 
                                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 bg-slate-50 p-3 rounded-lg border">
-                                        <label class="flex items-start gap-2.5 p-2 bg-white rounded border hover:bg-slate-50 cursor-pointer text-[11px] font-medium">
-                                            <input type="checkbox" v-model="formData.senaraiKursus[activeFormCourseIndex].folder.f1" class="w-4 h-4 text-emerald-600 rounded mt-0.5" />
-                                            <span><b class="text-slate-800">Folder 1:</b> Labsheet Amali / Bengkel</span>
-                                        </label>
-
-                                        <div class="p-2 bg-white rounded border space-y-2 text-[11px]">
-                                            <b class="text-slate-800 block border-b pb-1">Folder 2: Rancangan Pengajaran (RP)</b>
-                                            <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" v-model="formData.senaraiKursus[activeFormCourseIndex].folder.f2_1" class="text-emerald-600 rounded" /><span>2.1 Jadual Kuliah</span></label>
-                                            <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" v-model="formData.senaraiKursus[activeFormCourseIndex].folder.f2_2" class="text-emerald-600 rounded" /><span>2.2 RP / Konstruktif Alignment</span></label>
-                                            <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" v-model="formData.senaraiKursus[activeFormCourseIndex].folder.f2_3" class="text-emerald-600 rounded" /><span>2.3 Laporan Pertemuan Terperinci</span></label>
+                                        <!-- Folder 1 -->
+                                        <div class="p-2 bg-white rounded border flex items-center justify-between text-[11px]">
+                                            <span><b class="text-slate-800">1.</b> Labsheet Amali</span>
+                                            <div class="flex bg-slate-100 p-0.5 rounded border">
+                                                <button type="button" @click="formData.senaraiKursus[activeFormCourseIndex].folder.f1 = 'YA'" :class="['px-1.5 py-0.5 rounded text-[9px] font-bold', formData.senaraiKursus[activeFormCourseIndex].folder.f1 === 'YA' ? 'bg-emerald-500 text-white' : 'text-slate-500']">YA</button>
+                                                <button type="button" @click="formData.senaraiKursus[activeFormCourseIndex].folder.f1 = 'TIDAK'" :class="['px-1.5 py-0.5 rounded text-[9px] font-bold', formData.senaraiKursus[activeFormCourseIndex].folder.f1 === 'TIDAK' ? 'bg-rose-500 text-white' : 'text-slate-500']">TDK</button>
+                                                <button type="button" @click="formData.senaraiKursus[activeFormCourseIndex].folder.f1 = 'TB'" :class="['px-1.5 py-0.5 rounded text-[9px] font-bold', formData.senaraiKursus[activeFormCourseIndex].folder.f1 === 'TB' ? 'bg-sky-500 text-white' : 'text-slate-500']">TB</button>
+                                            </div>
                                         </div>
 
+                                        <!-- Folder 2: RP Breakdown -->
                                         <div class="p-2 bg-white rounded border space-y-2 text-[11px]">
-                                            <b class="text-slate-800 block border-b pb-1">Folder 3: Rekod Pelajar & Kehadiran</b>
-                                            <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" v-model="formData.senaraiKursus[activeFormCourseIndex].folder.f3_1" class="text-emerald-600 rounded" /><span>3.1 Senarai Daftar Pelajar</span></label>
-                                            <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" v-model="formData.senaraiKursus[activeFormCourseIndex].folder.f3_2" class="text-emerald-600 rounded" /><span>3.2 Rekod Kehadiran</span></label>
-                                            <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" v-model="formData.senaraiKursus[activeFormCourseIndex].folder.f3_3" class="text-emerald-600 rounded" /><span>3.3 Laporan Keseluruhan Kehadiran</span></label>
+                                            <b class="text-slate-800 block border-b pb-1">2. Rancangan Pengajaran (RP)</b>
+                                            <div v-for="item in [{key: 'f2_1', label: '2.1 Jadual Kuliah'}, {key: 'f2_2', label: '2.2 RP/CA'}, {key: 'f2_3', label: '2.3 Laporan Pertemuan'}]" :key="item.key" class="flex items-center justify-between">
+                                                <span>{{ item.label }}</span>
+                                                <div class="flex bg-slate-100 p-0.5 rounded border">
+                                                    <button type="button" @click="formData.senaraiKursus[activeFormCourseIndex].folder[item.key] = 'YA'" :class="['px-1.5 py-0.5 rounded text-[8px] font-bold', formData.senaraiKursus[activeFormCourseIndex].folder[item.key] === 'YA' ? 'bg-emerald-500 text-white' : 'text-slate-500']">YA</button>
+                                                    <button type="button" @click="formData.senaraiKursus[activeFormCourseIndex].folder[item.key] = 'TIDAK'" :class="['px-1.5 py-0.5 rounded text-[8px] font-bold', formData.senaraiKursus[activeFormCourseIndex].folder[item.key] === 'TIDAK' ? 'bg-rose-500 text-white' : 'text-slate-500']">TDK</button>
+                                                    <button type="button" @click="formData.senaraiKursus[activeFormCourseIndex].folder[item.key] = 'TB'" :class="['px-1.5 py-0.5 rounded text-[8px] font-bold', formData.senaraiKursus[activeFormCourseIndex].folder[item.key] === 'TB' ? 'bg-sky-500 text-white' : 'text-slate-500']">TB</button>
+                                                </div>
+                                            </div>
                                         </div>
 
-                                        <label class="flex items-start gap-2.5 p-2 bg-white rounded border hover:bg-slate-50 cursor-pointer text-[11px] font-medium">
-                                            <input type="checkbox" v-model="formData.senaraiKursus[activeFormCourseIndex].folder.f4" class="w-4 h-4 text-emerald-600 rounded mt-0.5" />
-                                            <span><b class="text-slate-800">Folder 4:</b> Laporan Moderation & Vetting Soalan</span>
-                                        </label>
-
+                                        <!-- Folder 3: Rekod & Kehadiran -->
                                         <div class="p-2 bg-white rounded border space-y-2 text-[11px]">
-                                            <b class="text-slate-800 block border-b pb-1">Folder 5: Pengukuran CLO & PLO</b>
-                                            <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" v-model="formData.senaraiKursus[activeFormCourseIndex].folder.f5_1" class="text-emerald-600 rounded" /><span>5.1 Borang Laporan Markah Peperiksaan</span></label>
-                                            <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" v-model="formData.senaraiKursus[activeFormCourseIndex].folder.f5_2" class="text-emerald-600 rounded" /><span>5.2 Laporan Pengukuran S3P</span></label>
+                                            <b class="text-slate-800 block border-b pb-1">3. Rekod & Kehadiran Pelajar</b>
+                                            <div v-for="item in [{key: 'f3_1', label: '3.1 Daftar Pelajar'}, {key: 'f3_2', label: '3.2 Kehadiran'}, {key: 'f3_3', label: '3.3 Laporan Hadir'}]" :key="item.key" class="flex items-center justify-between">
+                                                <span>{{ item.label }}</span>
+                                                <div class="flex bg-slate-100 p-0.5 rounded border">
+                                                    <button type="button" @click="formData.senaraiKursus[activeFormCourseIndex].folder[item.key] = 'YA'" :class="['px-1.5 py-0.5 rounded text-[8px] font-bold', formData.senaraiKursus[activeFormCourseIndex].folder[item.key] === 'YA' ? 'bg-emerald-500 text-white' : 'text-slate-500']">YA</button>
+                                                    <button type="button" @click="formData.senaraiKursus[activeFormCourseIndex].folder[item.key] = 'TIDAK'" :class="['px-1.5 py-0.5 rounded text-[8px] font-bold', formData.senaraiKursus[activeFormCourseIndex].folder[item.key] === 'TIDAK' ? 'bg-rose-500 text-white' : 'text-slate-500']">TDK</button>
+                                                    <button type="button" @click="formData.senaraiKursus[activeFormCourseIndex].folder[item.key] = 'TB'" :class="['px-1.5 py-0.5 rounded text-[8px] font-bold', formData.senaraiKursus[activeFormCourseIndex].folder[item.key] === 'TB' ? 'bg-sky-500 text-white' : 'text-slate-500']">TB</button>
+                                                </div>
+                                            </div>
                                         </div>
 
-                                        <label class="flex items-start gap-2.5 p-2 bg-white rounded border hover:bg-slate-50 cursor-pointer text-[11px] font-medium">
-                                            <input type="checkbox" v-model="formData.senaraiKursus[activeFormCourseIndex].folder.f6" class="w-4 h-4 text-emerald-600 rounded mt-0.5" />
-                                            <span><b class="text-slate-800">Folder 6:</b> Jadual Spesifikasi Ujian (JSU)</span>
-                                        </label>
-
-                                        <div class="p-2 bg-white rounded border space-y-2 text-[11px]">
-                                            <b class="text-slate-800 block border-b pb-1">Folder 7: Set Soalan & Skema</b>
-                                            <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" v-model="formData.senaraiKursus[activeFormCourseIndex].folder.f7_1" class="text-emerald-600 rounded" /><span>7.1 Set Soalan (Penilaian Berterusan)</span></label>
-                                            <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" v-model="formData.senaraiKursus[activeFormCourseIndex].folder.f7_2" class="text-emerald-600 rounded" /><span>7.2 Skema Pemarkahan Akhir</span></label>
+                                        <!-- Folder 4 -->
+                                        <div class="p-2 bg-white rounded border flex items-center justify-between text-[11px]">
+                                            <span><b class="text-slate-800">4.</b> Moderation & Vetting</span>
+                                            <div class="flex bg-slate-100 p-0.5 rounded border">
+                                                <button type="button" @click="formData.senaraiKursus[activeFormCourseIndex].folder.f4 = 'YA'" :class="['px-1.5 py-0.5 rounded text-[9px] font-bold', formData.senaraiKursus[activeFormCourseIndex].folder.f4 === 'YA' ? 'bg-emerald-500 text-white' : 'text-slate-500']">YA</button>
+                                                <button type="button" @click="formData.senaraiKursus[activeFormCourseIndex].folder.f4 = 'TIDAK'" :class="['px-1.5 py-0.5 rounded text-[9px] font-bold', formData.senaraiKursus[activeFormCourseIndex].folder.f4 === 'TIDAK' ? 'bg-rose-500 text-white' : 'text-slate-500']">TDK</button>
+                                                <button type="button" @click="formData.senaraiKursus[activeFormCourseIndex].folder.f4 = 'TB'" :class="['px-1.5 py-0.5 rounded text-[9px] font-bold', formData.senaraiKursus[activeFormCourseIndex].folder.f4 === 'TB' ? 'bg-sky-500 text-white' : 'text-slate-500']">TB</button>
+                                            </div>
                                         </div>
 
-                                        <label class="flex items-start gap-2.5 p-2 bg-white rounded border hover:bg-slate-50 cursor-pointer text-[11px] font-medium">
-                                            <input type="checkbox" v-model="formData.senaraiKursus[activeFormCourseIndex].folder.f8" class="w-4 h-4 text-emerald-600 rounded mt-0.5" />
-                                            <span><b class="text-slate-800">Folder 8:</b> Rubrik Penilaian Kursus</span>
-                                        </label>
+                                        <!-- Folder 5 -->
+                                        <div class="p-2 bg-white rounded border space-y-2 text-[11px]">
+                                            <b class="text-slate-800 block border-b pb-1">5. Analisis Pengukuran</b>
+                                            <div v-for="item in [{key: 'f5_1', label: '5.1 Laporan Markah'}, {key: 'f5_2', label: '5.2 Laporan S3P'}]" :key="item.key" class="flex items-center justify-between">
+                                                <span>{{ item.label }}</span>
+                                                <div class="flex bg-slate-100 p-0.5 rounded border">
+                                                    <button type="button" @click="formData.senaraiKursus[activeFormCourseIndex].folder[item.key] = 'YA'" :class="['px-1.5 py-0.5 rounded text-[8px] font-bold', formData.senaraiKursus[activeFormCourseIndex].folder[item.key] === 'YA' ? 'bg-emerald-500 text-white' : 'text-slate-500']">YA</button>
+                                                    <button type="button" @click="formData.senaraiKursus[activeFormCourseIndex].folder[item.key] = 'TIDAK'" :class="['px-1.5 py-0.5 rounded text-[8px] font-bold', formData.senaraiKursus[activeFormCourseIndex].folder[item.key] === 'TIDAK' ? 'bg-rose-500 text-white' : 'text-slate-500']">TDK</button>
+                                                    <button type="button" @click="formData.senaraiKursus[activeFormCourseIndex].folder[item.key] = 'TB'" :class="['px-1.5 py-0.5 rounded text-[8px] font-bold', formData.senaraiKursus[activeFormCourseIndex].folder[item.key] === 'TB' ? 'bg-sky-500 text-white' : 'text-slate-500']">TB</button>
+                                                </div>
+                                            </div>
+                                        </div>
 
-                                        <label class="flex items-start gap-2.5 p-2 bg-white rounded border hover:bg-slate-50 cursor-pointer text-[11px] font-medium">
-                                            <input type="checkbox" v-model="formData.senaraiKursus[activeFormCourseIndex].folder.f9" class="w-4 h-4 text-emerald-600 rounded mt-0.5" />
-                                            <span><b class="text-slate-800">Folder 9:</b> Penilaian Pelajar Terhadap Staf (e-SuPP)</span>
-                                        </label>
+                                        <!-- Folder 6 -->
+                                        <div class="p-2 bg-white rounded border flex items-center justify-between text-[11px]">
+                                            <span><b class="text-slate-800">6.</b> JSU</span>
+                                            <div class="flex bg-slate-100 p-0.5 rounded border">
+                                                <button type="button" @click="formData.senaraiKursus[activeFormCourseIndex].folder.f6 = 'YA'" :class="['px-1.5 py-0.5 rounded text-[9px] font-bold', formData.senaraiKursus[activeFormCourseIndex].folder.f6 === 'YA' ? 'bg-emerald-500 text-white' : 'text-slate-500']">YA</button>
+                                                <button type="button" @click="formData.senaraiKursus[activeFormCourseIndex].folder.f6 = 'TIDAK'" :class="['px-1.5 py-0.5 rounded text-[9px] font-bold', formData.senaraiKursus[activeFormCourseIndex].folder.f6 === 'TIDAK' ? 'bg-rose-500 text-white' : 'text-slate-500']">TDK</button>
+                                                <button type="button" @click="formData.senaraiKursus[activeFormCourseIndex].folder.f6 = 'TB'" :class="['px-1.5 py-0.5 rounded text-[9px] font-bold', formData.senaraiKursus[activeFormCourseIndex].folder.f6 === 'TB' ? 'bg-sky-500 text-white' : 'text-slate-500']">TB</button>
+                                            </div>
+                                        </div>
 
-                                        <label class="flex items-start gap-2.5 p-2 bg-white rounded border hover:bg-slate-50 cursor-pointer text-[11px] font-medium">
-                                            <input type="checkbox" v-model="formData.senaraiKursus[activeFormCourseIndex].folder.f10" class="w-4 h-4 text-emerald-600 rounded mt-0.5" />
-                                            <span><b class="text-slate-800">Folder 10:</b> Rekod Pelajar Kuliah Online (N/A)</span>
-                                        </label>
+                                        <!-- Folder 7 -->
+                                        <div class="p-2 bg-white rounded border space-y-2 text-[11px]">
+                                            <b class="text-slate-800 block border-b pb-1">7. PB & Peperiksaan Akhir</b>
+                                            <div v-for="item in [{key: 'f7_1', label: '7.1 Set Soalan'}, {key: 'f7_2', label: '7.2 Skema Pemarkahan'}]" :key="item.key" class="flex items-center justify-between">
+                                                <span>{{ item.label }}</span>
+                                                <div class="flex bg-slate-100 p-0.5 rounded border">
+                                                    <button type="button" @click="formData.senaraiKursus[activeFormCourseIndex].folder[item.key] = 'YA'" :class="['px-1.5 py-0.5 rounded text-[8px] font-bold', formData.senaraiKursus[activeFormCourseIndex].folder[item.key] === 'YA' ? 'bg-emerald-500 text-white' : 'text-slate-500']">YA</button>
+                                                    <button type="button" @click="formData.senaraiKursus[activeFormCourseIndex].folder[item.key] = 'TIDAK'" :class="['px-1.5 py-0.5 rounded text-[8px] font-bold', formData.senaraiKursus[activeFormCourseIndex].folder[item.key] === 'TIDAK' ? 'bg-rose-500 text-white' : 'text-slate-500']">TDK</button>
+                                                    <button type="button" @click="formData.senaraiKursus[activeFormCourseIndex].folder[item.key] = 'TB'" :class="['px-1.5 py-0.5 rounded text-[8px] font-bold', formData.senaraiKursus[activeFormCourseIndex].folder[item.key] === 'TB' ? 'bg-sky-500 text-white' : 'text-slate-500']">TB</button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Folder 8 -->
+                                        <div class="p-2 bg-white rounded border flex items-center justify-between text-[11px]">
+                                            <span><b class="text-slate-800">8.</b> Rubrik Penilaian</span>
+                                            <div class="flex bg-slate-100 p-0.5 rounded border">
+                                                <button type="button" @click="formData.senaraiKursus[activeFormCourseIndex].folder.f8 = 'YA'" :class="['px-1.5 py-0.5 rounded text-[9px] font-bold', formData.senaraiKursus[activeFormCourseIndex].folder.f8 === 'YA' ? 'bg-emerald-500 text-white' : 'text-slate-500']">YA</button>
+                                                <button type="button" @click="formData.senaraiKursus[activeFormCourseIndex].folder.f8 = 'TIDAK'" :class="['px-1.5 py-0.5 rounded text-[9px] font-bold', formData.senaraiKursus[activeFormCourseIndex].folder.f8 === 'TIDAK' ? 'bg-rose-500 text-white' : 'text-slate-500']">TDK</button>
+                                                <button type="button" @click="formData.senaraiKursus[activeFormCourseIndex].folder.f8 = 'TB'" :class="['px-1.5 py-0.5 rounded text-[9px] font-bold', formData.senaraiKursus[activeFormCourseIndex].folder.f8 === 'TB' ? 'bg-sky-500 text-white' : 'text-slate-500']">TB</button>
+                                            </div>
+                                        </div>
+
+                                        <!-- Folder 9 -->
+                                        <div class="p-2 bg-white rounded border flex items-center justify-between text-[11px]">
+                                            <span><b class="text-slate-800">9.</b> Penilaian Pelajar (e-SuPP)</span>
+                                            <div class="flex bg-slate-100 p-0.5 rounded border">
+                                                <button type="button" @click="formData.senaraiKursus[activeFormCourseIndex].folder.f9 = 'YA'" :class="['px-1.5 py-0.5 rounded text-[9px] font-bold', formData.senaraiKursus[activeFormCourseIndex].folder.f9 === 'YA' ? 'bg-emerald-500 text-white' : 'text-slate-500']">YA</button>
+                                                <button type="button" @click="formData.senaraiKursus[activeFormCourseIndex].folder.f9 = 'TIDAK'" :class="['px-1.5 py-0.5 rounded text-[9px] font-bold', formData.senaraiKursus[activeFormCourseIndex].folder.f9 === 'TIDAK' ? 'bg-rose-500 text-white' : 'text-slate-500']">TDK</button>
+                                                <button type="button" @click="formData.senaraiKursus[activeFormCourseIndex].folder.f9 = 'TB'" :class="['px-1.5 py-0.5 rounded text-[9px] font-bold', formData.senaraiKursus[activeFormCourseIndex].folder.f9 === 'TB' ? 'bg-sky-500 text-white' : 'text-slate-500']">TB</button>
+                                            </div>
+                                        </div>
+
+                                        <!-- Folder 10 -->
+                                        <div class="p-2 bg-white rounded border flex items-center justify-between text-[11px]">
+                                            <span><b class="text-slate-800">10.</b> Bukti Kuliah Online</span>
+                                            <div class="flex bg-slate-100 p-0.5 rounded border">
+                                                <button type="button" @click="formData.senaraiKursus[activeFormCourseIndex].folder.f10 = 'YA'" :class="['px-1.5 py-0.5 rounded text-[9px] font-bold', formData.senaraiKursus[activeFormCourseIndex].folder.f10 === 'YA' ? 'bg-emerald-500 text-white' : 'text-slate-500']">YA</button>
+                                                <button type="button" @click="formData.senaraiKursus[activeFormCourseIndex].folder.f10 = 'TIDAK'" :class="['px-1.5 py-0.5 rounded text-[9px] font-bold', formData.senaraiKursus[activeFormCourseIndex].folder.f10 === 'TIDAK' ? 'bg-rose-500 text-white' : 'text-slate-500']">TDK</button>
+                                                <button type="button" @click="formData.senaraiKursus[activeFormCourseIndex].folder.f10 = 'TB'" :class="['px-1.5 py-0.5 rounded text-[9px] font-bold', formData.senaraiKursus[activeFormCourseIndex].folder.f10 === 'TB' ? 'bg-sky-500 text-white' : 'text-slate-500']">TB</button>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -402,7 +498,7 @@
                     </form>
                 </section>
 
-                <!-- Jadual Ringkasan Fakulti (Dinamik) -->
+                <!-- Jadual Analisis Mengikut Fakulti (Dinamik) -->
                 <section class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                     <div class="bg-kias-800 px-6 py-4 border-b border-emerald-900 flex justify-between items-center text-white">
                         <h2 class="text-sm font-bold uppercase tracking-wider">1. Analisis Kualiti Fail Mengikut Fakulti ({{ selectedSemester }})</h2>
@@ -412,9 +508,9 @@
                             <thead class="text-xs text-slate-700 uppercase bg-slate-100 border-b">
                                 <tr>
                                     <th class="px-6 py-3.5 text-center">No.</th>
-                                    <th class="px-6 py-3.5">Fakulti / Jabatan</th>
+                                    <th class="px-6 py-3.5">Nama Fakulti / Pusat Pengajian</th>
                                     <th class="px-6 py-3.5 text-center">Jumlah Pensyarah</th>
-                                    <th class="px-6 py-3.5 text-center text-emerald-800 bg-emerald-50/50">Lengkap Semua (100%)</th>
+                                    <th class="px-6 py-3.5 text-center text-emerald-700 bg-emerald-50/50">Lengkap Semua (100%)</th>
                                     <th class="px-6 py-3.5 text-center text-amber-700 bg-amber-50/50">Belum Selesai Semua</th>
                                     <th class="px-6 py-3.5 text-center text-rose-700 bg-rose-50/50">Belum Hantar Langsung</th>
                                     <th class="px-6 py-3.5 text-center">Kadar Pensyarah Selesai (%)</th>
@@ -448,11 +544,11 @@
                         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                             <div>
                                 <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wide">2. Rekod Semakan Fail Kursus Staf Akademik (Kelompok Kursus)</h2>
-                                <p class="text-xs text-slate-500 mt-0.5">Memaparkan pecahan progres pemfailan bagi kesemua kursus yang diajar oleh pensyarah.</p>
+                                <p class="text-xs text-slate-500 mt-0.5">Memaparkan pecahan progres pemfailan bagi kesemua kursus yang diajar oleh pensyarah secara berasingan.</p>
                             </div>
                             <div class="flex gap-2">
-                                <button @click="openAddForm" class="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold rounded-lg transition uppercase tracking-wider shadow">Tambah Pensyarah & Kursus</button>
-                                <button @click="generatePDFReport" class="px-4 py-2 bg-rose-700 hover:bg-rose-800 text-white text-xs font-bold rounded-lg transition uppercase tracking-wider shadow">PDF Laporan Saringan</button>
+                                <button @click="openAddForm" class="px-4 py-2 bg-emerald-750 hover:bg-emerald-800 text-emerald-800 hover:text-emerald-900 border border-emerald-300 bg-emerald-50 text-xs font-bold rounded-lg transition uppercase tracking-wider shadow-sm">Tambah Pensyarah Baru</button>
+                                <button @click="generatePDFReport" class="px-4 py-2 bg-rose-700 hover:bg-rose-800 text-white text-xs font-bold rounded-lg transition uppercase tracking-wider shadow">Muat Turun PDF Laporan</button>
                             </div>
                         </div>
 
@@ -482,12 +578,12 @@
                                     <th class="px-4 py-3 text-center">Bil.</th>
                                     <th class="px-5 py-3">Pensyarah & Fakulti</th>
                                     <th class="px-4 py-3 text-center">Jawatan</th>
-                                    <th class="px-5 py-3">Pecahan Progres Mengikut Kursus yang Diajar (Tindakan folder berasingan)</th>
+                                    <th class="px-5 py-3">Pecahan Progres Mengikut Kursus yang Diajar (Saringan 10 Folder)</th>
                                     <th class="px-4 py-3 text-center">Status Keseluruhan</th>
                                     <th class="px-5 py-3 text-center">Tindakan Profil</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-slate-250 font-medium text-slate-700">
+                            <tbody class="divide-y divide-slate-200 font-medium text-slate-700">
                                 <tr v-for="(lecturer, index) in filteredLecturers" :key="lecturer.id" class="hover:bg-slate-50/50 transition">
                                     <!-- Bil. -->
                                     <td class="px-4 py-4 text-center text-slate-400 font-bold">{{ index + 1 }}</td>
@@ -501,52 +597,46 @@
                                     </td>
                                     
                                     <!-- Jawatan -->
-                                    <td class="px-4 py-4 text-center text-xs text-slate-500">
-                                        {{ lecturer.jawatan }}
-                                    </td>
-                                    
-                                    <!-- Pecahan Kursus & Folder (Dinamik mengikut input subjek diajar) -->
-                                    <td class="px-5 py-4 space-y-3">
-                                        <div v-for="(kursus, kIdx) in lecturer.senaraiKursus" :key="kIdx" class="bg-slate-50 p-3 rounded-lg border border-slate-200">
-                                            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-2 pb-1.5 border-b border-slate-200">
-                                                <div class="flex items-center gap-2">
-                                                    <span class="bg-slate-800 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase">
-                                                        KURSUS: {{ kursus.kodKursus }}
-                                                    </span>
-                                                    <span :class="[
-                                                        'text-[10px] font-bold px-1.5 py-0.5 rounded',
-                                                        getCourseProgress(kursus) === 100 ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
-                                                    ]">
-                                                        Progres: {{ getCourseProgress(kursus) }}%
+                                    <td class="px-4 py-4 text-center text-xs text-slate-555 font-semibold">{{ lecturer.jawatan }}</td>
+
+                                    <!-- Pecahan Kursus -->
+                                    <td class="px-5 py-4">
+                                        <div class="space-y-3">
+                                            <div v-for="(kursus, kIdx) in lecturer.senaraiKursus" :key="kIdx" class="bg-white p-2.5 rounded-lg border border-slate-200 shadow-xs space-y-2">
+                                                <div class="flex items-center justify-between">
+                                                    <span class="text-xs font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded">📚 KURSUS: {{ kursus.kodKursus }}</span>
+                                                    <span class="text-[10px] font-bold text-slate-500">Progres: {{ getCourseProgress(kursus) }}%</span>
+                                                </div>
+                                                
+                                                <!-- Visual 10 Folder Indicators -->
+                                                <div class="flex flex-wrap gap-1">
+                                                    <span 
+                                                        v-for="(f, fIdx) in getFolderStatusMapForCourse(kursus)" 
+                                                        :key="fIdx" 
+                                                        :title="f.label + ': ' + f.active" 
+                                                        :class="[
+                                                            'text-[9px] w-5 h-5 flex items-center justify-center rounded font-bold border transition-all', 
+                                                            f.active === 'YA' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 
+                                                            f.active === 'TB' ? 'bg-sky-100 text-sky-850 border-sky-300' :
+                                                            'bg-rose-50 text-rose-700 border-rose-200'
+                                                        ]"
+                                                    >
+                                                        {{ f.label.replace('F', '') }}
                                                     </span>
                                                 </div>
-                                                <span class="text-[11px] text-slate-500 italic max-w-xs truncate" :title="kursus.catatan">
-                                                    Komen: {{ kursus.catatan || 'Tiada ulasan' }}
-                                                </span>
-                                            </div>
-                                            
-                                            <!-- Peta Folder Visual bagi subjek ini -->
-                                            <div class="flex flex-wrap items-center gap-1">
-                                                <span 
-                                                    v-for="(f, fIdx) in getFolderStatusMapForCourse(kursus)" 
-                                                    :key="fIdx" 
-                                                    :title="f.label + ': ' + (f.active ? 'Lengkap' : 'Belum')" 
-                                                    :class="[
-                                                        'text-[9px] w-5 h-5 flex items-center justify-center rounded font-bold border transition-all', 
-                                                        f.active ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-slate-100 text-slate-400 border-slate-200'
-                                                    ]"
-                                                >
-                                                    {{ f.label.replace('F', '') }}
-                                                </span>
+                                                
+                                                <div v-if="kursus.catatan" class="text-[10px] text-slate-500 italic">
+                                                    <b>Ulasan:</b> {{ kursus.catatan }}
+                                                </div>
                                             </div>
                                         </div>
                                     </td>
 
-                                    <!-- Status Keseluruhan Pensyarah (Memerlukan penghantaran KESEMUA kursus) -->
+                                    <!-- Status Keseluruhan Pensyarah -->
                                     <td class="px-4 py-4 text-center">
                                         <div class="inline-flex flex-col items-center">
                                             <span :class="[
-                                                'text-[11px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider',
+                                                'text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider',
                                                 isLecturerFullyComplete(lecturer) 
                                                     ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' 
                                                     : 'bg-amber-100 text-amber-800 border border-amber-300'
@@ -554,7 +644,7 @@
                                                 {{ isLecturerFullyComplete(lecturer) ? 'SELESAI KESEMUA' : 'BELUM SELESAI' }}
                                             </span>
                                             <span class="text-[10px] text-slate-400 mt-1 font-semibold">
-                                                ({{ countCompletedCourses(lecturer) }}/{{ lecturer.senaraiKursus.length }} Kursus Selesai)
+                                                ({{ countCompletedCourses(lecturer) }}/{{ lecturer.senaraiKursus.length }} Selesai)
                                             </span>
                                         </div>
                                     </td>
@@ -562,13 +652,13 @@
                                     <!-- Tindakan Profil -->
                                     <td class="px-5 py-4 text-center">
                                         <div class="flex justify-center gap-1.5">
-                                            <button @click="handleEdit(lecturer)" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg border border-transparent hover:border-blue-200 transition" title="Sunting Semua Kursus">✏️ Sunting</button>
-                                            <button @click="handleDelete(lecturer.id)" class="p-2 text-rose-600 hover:bg-rose-50 rounded-lg border border-transparent hover:border-rose-200 transition" title="Padam Profil">🗑️ Padam</button>
+                                            <button @click="handleEdit(lecturer)" class="px-2 py-1 text-xs bg-slate-100 hover:bg-slate-200 border rounded text-blue-600 font-bold transition">✏️ Sunting</button>
+                                            <button @click="handleDelete(lecturer.id)" class="px-2 py-1 text-xs bg-slate-100 hover:bg-slate-200 border rounded text-rose-600 font-bold transition">🗑️ Padam</button>
                                         </div>
                                     </td>
                                 </tr>
                                 <tr v-if="filteredLecturers.length === 0">
-                                    <td colspan="6" class="p-12 text-center text-slate-400 italic">Tiada rekod saringan dijumpai.</td>
+                                    <td colspan="6" class="p-12 text-center text-slate-400 italic">Tiada rekod saringan dijumpai dalam pangkalan data. Sila gunakan menu "Muat Naik CSV/Excel" untuk memasukkan data pensyarah secara kelompok.</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -581,7 +671,7 @@
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-6">
                     <div class="border-b pb-4">
                         <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
-                            <span>📊</span> Sistem Pengimport Laporan CSV Fail Kursus (Berbilang Kursus)
+                            <span>📊</span> Sistem Pengimport Laporan CSV Fail Kursus (Pengelompokan Pintar)
                         </h2>
                         <p class="text-xs text-slate-500 mt-1">Anda boleh mengemas kini senarai pensyarah dan data semakan proforma dengan cepat menggunakan fail CSV. Sistem akan menggabungkan subjek di bawah pensyarah yang sama secara pintar.</p>
                     </div>
@@ -608,11 +698,31 @@
                                 <p class="text-xs text-slate-600">Muat turun templat rasmi untuk menyusun data semakan kualiti bagi pensyarah yang mengajar berbilang subjek sebelum diimport.</p>
                                 <ul class="text-[11px] text-slate-500 list-disc list-inside space-y-1">
                                     <li>Format ruangan standard KIAS 10 folder.</li>
-                                    <li>Sekiranya pensyarah mengajar lebih daripada satu kursus, masukkan nama pensyarah pada baris pertama, dan kosongkan nama pensyarah pada baris berikutnya untuk subjek kedua/ketiga (sistem akan mengelompokkannya secara automatik).</li>
+                                    <li>Sekiranya pensyarah mengajar lebih daripada satu kursus, masukkan nama pensyarah pada baris pertama, dan kosongkan nama pensyarah pada baris berikutnya untuk subjek kedua/third.</li>
                                 </ul>
                             </div>
                             <button @click="downloadCSVTemplate" class="mt-4 w-full px-4 py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs uppercase tracking-wider rounded-lg transition text-center flex items-center justify-center gap-2">
                                 📥 Muat Turun Templat CSV (.csv)
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Input Sel Excel Paste Terus -->
+                    <div class="space-y-3 pt-4 border-t">
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wide">Atau Salin & Tampal Terus Sel Dari Excel / Google Sheets:</h3>
+                            <button @click="clearPasteText" class="text-xs text-rose-600 hover:text-rose-800 font-semibold">Padam Kawasan Input</button>
+                        </div>
+                        <textarea 
+                            v-model="pastedExcelText" 
+                            rows="8" 
+                            placeholder="Tampal sel dari Excel di sini...&#10;Contoh format lajur:&#10;Nama Pensyarah, Jawatan, Fakulti, Kod Kursus, f1, f2_1, f2_2, f2_3, f3_1, f3_2, f3_3, f4, f5_1, f5_2, f6, f7_1, f7_2, f8, f9, f10, Catatan"
+                            class="w-full p-3 text-slate-900 bg-slate-50 border border-slate-350 rounded-lg p-3 text-xs font-mono focus:ring-emerald-500 focus:border-emerald-500"
+                        ></textarea>
+                        
+                        <div class="flex justify-end gap-2">
+                            <button @click="processPastedExcel" class="px-5 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs uppercase tracking-wider rounded-lg shadow-sm transition">
+                                ⚡ Proses Data Ditampal
                             </button>
                         </div>
                     </div>
@@ -696,100 +806,78 @@
             </div>
         </div>
 
+        <!-- MODAL EDIT SESI AKADEMIK SEMASA -->
+        <div v-if="showEditSessionModal" class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 flex items-center justify-center p-4">
+            <div class="bg-white rounded-xl shadow-xl border p-6 max-w-md w-full space-y-4">
+                <div class="flex justify-between items-center border-b pb-2">
+                    <h3 class="font-bold text-slate-800">Edit Nama Sesi Akademik Semasa</h3>
+                    <button @click="showEditSessionModal = false" class="text-slate-400">✕</button>
+                </div>
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Nama Sesi</label>
+                        <input type="text" v-model="editSessionName" class="w-full bg-slate-50 border rounded-lg p-2.5 text-sm font-semibold focus:ring-emerald-500" />
+                    </div>
+                </div>
+                <div class="flex justify-end gap-2">
+                    <button @click="showEditSessionModal = false" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 rounded text-xs font-bold text-slate-700">Batal</button>
+                    <button @click="updateAcademicSession" class="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded text-xs font-bold uppercase tracking-wider">Simpan Perubahan</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL TAMBAH FAKULTI / PUSAT BARU -->
+        <div v-if="showAddFacultyModal" class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 flex items-center justify-center p-4">
+            <div class="bg-white rounded-xl shadow-xl border p-6 max-w-md w-full space-y-4">
+                <div class="flex justify-between items-center border-b pb-2">
+                    <h3 class="font-bold text-slate-800">Tambah Fakulti / Pusat Baru</h3>
+                    <button @click="showAddFacultyModal = false" class="text-slate-400">✕</button>
+                </div>
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Singkatan / Kod Fakulti</label>
+                        <input type="text" v-model="newFacultyId" placeholder="Contoh: FPB" class="w-full bg-slate-50 border rounded-lg p-2.5 text-sm font-semibold focus:ring-emerald-500 uppercase" />
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Nama Penuh Fakulti / Pusat</label>
+                        <input type="text" v-model="newFacultyName" placeholder="Contoh: FAKULTI PENGAJIAN BARU" class="w-full bg-slate-50 border rounded-lg p-2.5 text-sm font-semibold focus:ring-emerald-500 uppercase" />
+                    </div>
+                </div>
+                <div class="flex justify-end gap-2">
+                    <button @click="showAddFacultyModal = false" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 rounded text-xs font-bold text-slate-700">Batal</button>
+                    <button @click="addNewFaculty" class="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded text-xs font-bold uppercase tracking-wider">Tambah Fakulti</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer Bersepadu -->
+        <footer class="bg-slate-800 text-slate-400 text-xs py-6 mt-12 border-t border-slate-700">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4">
+                <div class="text-center md:text-left">
+                    <p class="font-bold text-slate-300">KOLEJ UNIVERSITI ISLAM ANTARABANGSA SULTAN ISMAIL PETRA (KIAS)</p>
+                    <p class="mt-0.5 text-slate-500">Nilam Puri, Jalan Kuala Krai, 15730 Kota Bharu, Kelantan.</p>
+                </div>
+                <div class="text-center md:text-right">
+                    <p>&copy; 2026 Unit Kualiti Akademik KIAS. Hak Cipta Terpelihara.</p>
+                </div>
+            </div>
+        </footer>
+
     </div>
 
     <!-- Logik Pengaturcaraan Vue 3 & Penjana PDF -->
     <script>
-        const { createApp, ref, computed, watch } = Vue;
+        const { createApp, ref, computed, watch, onMounted } = Vue;
 
         createApp({
             setup() {
-                // Konfigurasi Asal Fakulti
-                const INITIAL_STATS = [
-                    { no: 1, fakulti: "PENGAJIAN ISLAM DAN BAHASA ARAB", singkatan: "FPIB", pensyarah: 18, lengkap: 7, tidakLengkap: 3, hantar: 10, belum: 8 },
-                    { no: 2, fakulti: "PENGURUSAN DAN PEMBANGUNAN INSAN", singkatan: "FPPI", pensyarah: 20, lengkap: 7, tidakLengkap: 11, hantar: 18, belum: 2 },
-                    { no: 3, fakulti: "SYARIAH DAN MUAMALAT", singkatan: "FSM", pensyarah: 23, lengkap: 4, tidakLengkap: 8, hantar: 12, belum: 11 },
-                    { no: 4, fakulti: "USULUDDIN DAN AL-QURAN & SUNNAH", singkatan: "FUQS", pensyarah: 24, lengkap: 2, tidakLengkap: 3, hantar: 5, belum: 19 },
-                ];
-
-                // Struktur Data Baharu Menyokong Berbilang Kursus bagi Setiap Pensyarah
-                const INITIAL_LECTURERS = [
-                    {
-                        id: "L1",
-                        nama: "Dr. Azyantee binti Mohd Zawawi",
-                        jawatan: "Pensyarah Kontrak Sem.",
-                        fakulti: "FPPI",
-                        senaraiKursus: [
-                            {
-                                kodKursus: "MPU2133",
-                                catatan: "Lengkap dan disahkan",
-                                folder: { f1: true, f2_1: true, f2_2: true, f2_3: true, f3_1: true, f3_2: true, f3_3: true, f4: true, f5_1: true, f5_2: true, f6: true, f7_1: true, f7_2: true, f8: true, f9: true, f10: true }
-                            },
-                            {
-                                kodKursus: "MPU3452-KB1",
-                                catatan: "Kemas kini S3P",
-                                folder: { f1: true, f2_1: true, f2_2: true, f2_3: true, f3_1: true, f3_2: true, f3_3: true, f4: true, f5_1: true, f5_2: false, f6: true, f7_1: true, f7_2: true, f8: true, f9: true, f10: true }
-                            }
-                        ]
-                    },
-                    {
-                        id: "L2",
-                        nama: "Rosnani binti Ripin",
-                        jawatan: "Pensyarah Tetap",
-                        fakulti: "FPIB",
-                        senaraiKursus: [
-                            {
-                                kodKursus: "PIA0254",
-                                catatan: "Lengkap",
-                                folder: { f1: true, f2_1: true, f2_2: true, f2_3: true, f3_1: true, f3_2: true, f3_3: true, f4: true, f5_1: true, f5_2: true, f6: true, f7_1: true, f7_2: true, f8: true, f9: true, f10: true }
-                            }
-                        ]
-                    },
-                    {
-                        id: "L3",
-                        nama: "Siti Jamilah binti Ashar",
-                        jawatan: "Pensyarah Tetap",
-                        fakulti: "FPIB",
-                        senaraiKursus: [
-                            {
-                                kodKursus: "MPU2233",
-                                catatan: "Menunggu rubrik penilaian",
-                                folder: { f1: false, f2_1: true, f2_2: true, f2_3: false, f3_1: true, f3_2: true, f3_3: false, f4: false, f5_1: false, f5_2: false, f6: true, f7_1: true, f7_2: true, f8: false, f9: false, f10: false }
-                            },
-                            {
-                                kodKursus: "MPU3112",
-                                catatan: "Semua fail lengkap",
-                                folder: { f1: true, f2_1: true, f2_2: true, f2_3: true, f3_1: true, f3_2: true, f3_3: true, f4: true, f5_1: true, f5_2: true, f6: true, f7_1: true, f7_2: true, f8: true, f9: true, f10: true }
-                            }
-                        ]
-                    },
-                    {
-                        id: "L4",
-                        nama: "Nursabila binti Ramli",
-                        jawatan: "Pensyarah Tetap",
-                        fakulti: "FSM",
-                        senaraiKursus: [
-                            {
-                                kodKursus: "PKA2633",
-                                catatan: "Tandatangan ketua jabatan diperlukan",
-                                folder: { f1: true, f2_1: true, f2_2: true, f2_3: true, f3_1: true, f3_2: true, f3_3: true, f4: true, f5_1: true, f5_2: true, f6: true, f7_1: true, f7_2: true, f8: true, f9: true, f10: true }
-                            },
-                            {
-                                kodKursus: "UMT3133",
-                                catatan: "Tugasan pelajar belum disemak",
-                                folder: { f1: true, f2_1: true, f2_2: true, f2_3: true, f3_1: true, f3_2: true, f3_3: true, f4: true, f5_1: true, f5_2: false, f6: true, f7_1: true, f7_2: true, f8: true, f9: true, f10: true }
-                            }
-                        ]
-                    }
-                ];
-
-                const faculties = [
-                    { id: "ALL", name: "Semua Fakulti" },
-                    { id: "FPIB", name: "Pengajian Islam & Bahasa Arab (FPIB)" },
-                    { id: "FPPI", name: "Pengurusan & Pembangunan Insan (FPPI)" },
-                    { id: "FSM", name: "Syariah & Muamalat (FSM)" },
-                    { id: "FUQS", name: "Usuluddin & Al-Quran & Sunnah (FUQS)" }
-                ];
+                // Senarai Fakulti Dinamik (Boleh ditambah oleh pentadbir)
+                const dynamicFaculties = ref([
+                    { id: "FPIB", name: "PENGAJIAN ISLAM DAN BAHASA ARAB" },
+                    { id: "FPPI", name: "PENGURUSAN DAN PEMBANGUNAN INSAN" },
+                    { id: "FSM", name: "SYARIAH DAN MUAMALAT" },
+                    { id: "FUQS", name: "USULUDDIN DAN AL-QURAN & SUNNAH" }
+                ]);
 
                 // State Ref
                 const activeTab = ref("dashboard");
@@ -799,17 +887,30 @@
                 const statusFilter = ref("ALL");
                 const toast = ref(null);
                 const logoFailed = ref(false);
+                const pastedExcelText = ref("");
+
+                // Custom Notification Modals
+                const customAlert = ref({ show: false, title: "", message: "" });
+                const customConfirm = ref({ show: false, title: "", message: "", onConfirm: null });
 
                 // Indeks Kursus Aktif pada Borang
                 const activeFormCourseIndex = ref(0);
 
-                // Senarai Sesi Akademik yang boleh ditambah
+                // Senarai Sesi Akademik yang boleh ditambah & diedit
                 const academicSessions = ref(["2025/2026 - SEM 2", "2025/2026 - SEM 1", "2024/2025 - SEM 2", "2024/2025 - SEM 1"]);
                 const showAddSessionModal = ref(false);
                 const newSessionName = ref("");
 
-                const lecturers = ref(INITIAL_LECTURERS);
-                const stats = ref(INITIAL_STATS);
+                // Modals untuk Edit Sesi & Tambah Fakulti
+                const showEditSessionModal = ref(false);
+                const editSessionName = ref("");
+                const showAddFacultyModal = ref(false);
+                const newFacultyId = ref("");
+                const newFacultyName = ref("");
+
+                // Pangkalan data bermula kosong
+                const lecturers = ref([]);
+                const stats = ref([]);
 
                 const isAdding = ref(false);
                 const editingLecturer = ref(null);
@@ -820,6 +921,7 @@
                     connected: false
                 });
 
+                // Borang data struktur menyokong status YA/TIDAK/TB
                 const formData = ref({
                     nama: '',
                     jawatan: 'Pensyarah Tetap',
@@ -829,12 +931,49 @@
                             kodKursus: '',
                             catatan: '',
                             folder: {
-                                f1: false, f2_1: false, f2_2: false, f2_3: false, f3_1: false,
-                                f3_2: false, f3_3: false, f4: false, f5_1: false, f5_2: false,
-                                f6: false, f7_1: false, f7_2: false, f8: false, f9: false, f10: false
+                                f1: 'TIDAK', f2_1: 'TIDAK', f2_2: 'TIDAK', f2_3: 'TIDAK', f3_1: 'TIDAK',
+                                f3_2: 'TIDAK', f3_3: 'TIDAK', f4: 'TIDAK', f5_1: 'TIDAK', f5_2: 'TIDAK',
+                                f6: 'TIDAK', f7_1: 'TIDAK', f7_2: 'TIDAK', f8: 'TIDAK', f9: 'TIDAK', f10: 'TIDAK'
                             }
                         }
                     ]
+                });
+
+                // Membina senarai dropdown fakulti secara dinamik
+                const faculties = computed(() => {
+                    const base = [{ id: "ALL", name: "Semua Fakulti" }];
+                    dynamicFaculties.value.forEach(f => {
+                        base.push({ id: f.id, name: `${f.name} (${f.id})` });
+                    });
+                    return base;
+                });
+
+                // LocalStorage integration on mount
+                onMounted(() => {
+                    const saved = localStorage.getItem("kias_3state_lecturers_v2");
+                    if (saved) {
+                        try {
+                            lecturers.value = JSON.parse(saved);
+                        } catch (e) {
+                            console.error("Gagal memuat naik data tersimpan", e);
+                        }
+                    }
+                    const savedSessions = localStorage.getItem("kias_academic_sessions");
+                    if (savedSessions) {
+                        try {
+                            academicSessions.value = JSON.parse(savedSessions);
+                        } catch (e) {
+                            console.error(e);
+                        }
+                    }
+                    const savedFaculties = localStorage.getItem("kias_dynamic_faculties");
+                    if (savedFaculties) {
+                        try {
+                            dynamicFaculties.value = JSON.parse(savedFaculties);
+                        } catch (e) {
+                            console.error(e);
+                        }
+                    }
                 });
 
                 // Toast Alert Helper
@@ -845,34 +984,60 @@
                     }, 3000);
                 };
 
+                const showCustomAlert = (title, message) => {
+                    customAlert.value = { show: true, title, message };
+                };
+
+                const showCustomConfirm = (title, message, onConfirmCallback) => {
+                    customConfirm.value = { show: true, title, message, onConfirm: onConfirmCallback };
+                };
+
+                const executeCustomConfirm = () => {
+                    if (customConfirm.value.onConfirm) {
+                        customConfirm.value.onConfirm();
+                    }
+                    customConfirm.value.show = false;
+                };
+
                 // Pengendali Ralat Imej Logo
                 const handleLogoError = () => {
                     logoFailed.value = true;
                 };
 
-                // Pengiraan Progres Kursus Tunggal
+                // Pengiraan Progres Kursus Tunggal (Melangkau TB)
                 const getCourseProgress = (kursus) => {
-                    const keys = Object.keys(kursus.folder);
-                    const completed = keys.filter(k => kursus.folder[k]).length;
-                    return Math.round((completed / keys.length) * 100);
+                    if (!kursus || !kursus.folder) return 0;
+                    const folderKeys = Object.keys(kursus.folder);
+                    let countYA = 0;
+                    let countTIDAK = 0;
+                    
+                    folderKeys.forEach(key => {
+                        const status = kursus.folder[key];
+                        if (status === 'YA') countYA++;
+                        if (status === 'TIDAK') countTIDAK++;
+                    });
+
+                    const totalRelevant = countYA + countTIDAK;
+                    if (totalRelevant === 0) return 100; // Jika semua folder adalah TB, maka ia dikira selesai.
+                    return Math.round((countYA / totalRelevant) * 100);
                 };
 
-                // Cek adakah semua kursus bagi pensyarah ini selesai 100%
+                // Semak sama ada pensyarah selesai kesemua kursus
                 const isLecturerFullyComplete = (lecturer) => {
                     if (!lecturer.senaraiKursus || lecturer.senaraiKursus.length === 0) return false;
                     return lecturer.senaraiKursus.every(k => getCourseProgress(k) === 100);
                 };
 
-                // Kira bilangan kursus yang selesai bagi pensyarah
                 const countCompletedCourses = (lecturer) => {
                     if (!lecturer.senaraiKursus) return 0;
                     return lecturer.senaraiKursus.filter(k => getCourseProgress(k) === 100).length;
                 };
 
-                // Cek adakah pensyarah langsung belum hantar fail
                 const isLecturerEmpty = (lecturer) => {
-                    if (!lecturer.senaraiKursus) return true;
-                    return lecturer.senaraiKursus.every(k => getCourseProgress(k) === 0);
+                    if (!lecturer.senaraiKursus || lecturer.senaraiKursus.length === 0) return true;
+                    return lecturer.senaraiKursus.every(k => {
+                        return Object.values(k.folder).every(status => status === 'TIDAK');
+                    });
                 };
 
                 // Tukar Semester
@@ -883,18 +1048,64 @@
                 // Tambah Sesi Baru
                 const addNewAcademicSession = () => {
                     if (!newSessionName.value) {
-                        showToast("Sila masukkan nama sesi!", "error");
+                        showCustomAlert("Input Tidak Sah", "Sila masukkan nama sesi!");
                         return;
                     }
                     if (academicSessions.value.includes(newSessionName.value)) {
-                        showToast("Sesi Akademik ini sudah sedia ada!", "warning");
+                        showCustomAlert("Sesi Sedia Ada", "Sesi Akademik ini sudah sedia ada!");
                         return;
                     }
                     academicSessions.value.unshift(newSessionName.value);
+                    localStorage.setItem("kias_academic_sessions", JSON.stringify(academicSessions.value));
                     selectedSemester.value = newSessionName.value;
                     showAddSessionModal.value = false;
                     newSessionName.value = "";
                     showToast("Sesi Akademik baharu berjaya didaftarkan.");
+                };
+
+                // Buka Modal Sunting Sesi Semasa
+                const openEditSessionModal = () => {
+                    editSessionName.value = selectedSemester.value;
+                    showEditSessionModal.value = true;
+                };
+
+                // Simpan Perubahan Nama Sesi Akademik
+                const updateAcademicSession = () => {
+                    if (!editSessionName.value.trim()) {
+                        showCustomAlert("Input Tidak Sah", "Nama sesi akademik tidak boleh dibiarkan kosong!");
+                        return;
+                    }
+                    const index = academicSessions.value.indexOf(selectedSemester.value);
+                    if (index !== -1) {
+                        academicSessions.value[index] = editSessionName.value.trim();
+                        selectedSemester.value = editSessionName.value.trim();
+                        localStorage.setItem("kias_academic_sessions", JSON.stringify(academicSessions.value));
+                        showEditSessionModal.value = false;
+                        showToast("Nama Sesi Akademik semasa berjaya dikemaskini.");
+                    }
+                };
+
+                // Tambah Fakulti Baru
+                const addNewFaculty = () => {
+                    if (!newFacultyId.value.trim() || !newFacultyName.value.trim()) {
+                        showCustomAlert("Input Tidak Sah", "Sila isi kedua-dua Singkatan dan Nama Penuh Fakulti!");
+                        return;
+                    }
+                    const fid = newFacultyId.value.toUpperCase().trim();
+                    const fname = newFacultyName.value.toUpperCase().trim();
+
+                    if (dynamicFaculties.value.some(f => f.id === fid)) {
+                        showCustomAlert("Fakulti Sedia Ada", "Fakulti atau pusat pengajian dengan singkatan ini sudah sedia ada!");
+                        return;
+                    }
+
+                    dynamicFaculties.value.push({ id: fid, name: fname });
+                    localStorage.setItem("kias_dynamic_faculties", JSON.stringify(dynamicFaculties.value));
+                    
+                    showAddFacultyModal.value = false;
+                    newFacultyId.value = "";
+                    newFacultyName.value = "";
+                    showToast("Fakulti / Pusat Pengajian baharu berjaya ditambah.");
                 };
 
                 // Reset Saringan
@@ -902,7 +1113,7 @@
                     selectedFakulti.value = "ALL";
                     searchTerm.value = "";
                     statusFilter.value = "ALL";
-                    showToast("Saringan berjaya di-reset semula.", "info");
+                    showToast("Saringan telah diset semula.", "info");
                 };
 
                 // Tambah kursus ke dalam borang input dinamik
@@ -911,23 +1122,26 @@
                         kodKursus: '',
                         catatan: '',
                         folder: {
-                            f1: false, f2_1: false, f2_2: false, f2_3: false, f3_1: false,
-                            f3_2: false, f3_3: false, f4: false, f5_1: false, f5_2: false,
-                            f6: false, f7_1: false, f7_2: false, f8: false, f9: false, f10: false
+                            f1: 'TIDAK', f2_1: 'TIDAK', f2_2: 'TIDAK', f2_3: 'TIDAK', f3_1: 'TIDAK',
+                            f3_2: 'TIDAK', f3_3: 'TIDAK', f4: 'TIDAK', f5_1: 'TIDAK', f5_2: 'TIDAK',
+                            f6: 'TIDAK', f7_1: 'TIDAK', f7_2: 'TIDAK', f8: 'TIDAK', f9: 'TIDAK', f10: 'TIDAK'
                         }
                     });
                     activeFormCourseIndex.value = formData.value.senaraiKursus.length - 1;
-                    showToast("Satu lagi slot kursus ditambah ke dalam profil pensyarah.");
+                    showToast("Slot kursus baharu ditambah.");
                 };
 
                 // Padam kursus daripada borang
                 const removeCourseFromForm = (index) => {
-                    if (formData.value.senaraiKursus.length <= 1) return;
+                    if (formData.value.senaraiKursus.length <= 1) {
+                        showCustomAlert("Ralat Pembuangan", "Profil pensyarah mestilah mempunyai sekurang-kurangnya satu kursus.");
+                        return;
+                    }
                     formData.value.senaraiKursus.splice(index, 1);
                     if (activeFormCourseIndex.value >= formData.value.senaraiKursus.length) {
                         activeFormCourseIndex.value = formData.value.senaraiKursus.length - 1;
                     }
-                    showToast("Slot kursus dikeluarkan.", "warning");
+                    showToast("Slot kursus dibuang.", "warning");
                 };
 
                 // Buka Borang Tambah Baru
@@ -937,37 +1151,56 @@
                     isAdding.value = true;
                 };
 
-                // Buka borang untuk disunting
+                // Buka borang untuk disunting (Deep Copy Perfect Fix)
                 const handleEdit = (lecturer) => {
                     editingLecturer.value = lecturer;
-                    // Sediakan salinan mendalam
+                    // Sediakan salinan mendalam (deep copy) bebas rujukan loop Vue
+                    const cleanCloned = JSON.parse(JSON.stringify(lecturer));
                     formData.value = {
-                        nama: lecturer.nama,
-                        jawatan: lecturer.jawatan,
-                        fakulti: lecturer.fakulti,
-                        senaraiKursus: lecturer.senaraiKursus.map(k => ({
+                        nama: cleanCloned.nama,
+                        jawatan: cleanCloned.jawatan,
+                        fakulti: cleanCloned.fakulti,
+                        senaraiKursus: cleanCloned.senaraiKursus.map(k => ({
                             kodKursus: k.kodKursus,
                             catatan: k.catatan || '',
-                            folder: { ...k.folder }
+                            folder: {
+                                f1: k.folder.f1 || 'TIDAK',
+                                f2_1: k.folder.f2_1 || 'TIDAK',
+                                f2_2: k.folder.f2_2 || 'TIDAK',
+                                f2_3: k.folder.f2_3 || 'TIDAK',
+                                f3_1: k.folder.f3_1 || 'TIDAK',
+                                f3_2: k.folder.f3_2 || 'TIDAK',
+                                f3_3: k.folder.f3_3 || 'TIDAK',
+                                f4: k.folder.f4 || 'TIDAK',
+                                f5_1: k.folder.f5_1 || 'TIDAK',
+                                f5_2: k.folder.f5_2 || 'TIDAK',
+                                f6: k.folder.f6 || 'TIDAK',
+                                f7_1: k.folder.f7_1 || 'TIDAK',
+                                f7_2: k.folder.f7_2 || 'TIDAK',
+                                f8: k.folder.f8 || 'TIDAK',
+                                f9: k.folder.f9 || 'TIDAK',
+                                f10: k.folder.f10 || 'TIDAK'
+                            }
                         }))
                     };
                     activeFormCourseIndex.value = 0;
                     isAdding.value = true;
+                    window.scrollTo({ top: 300, behavior: 'smooth' });
                 };
 
                 const resetFormData = () => {
                     formData.value = {
                         nama: '',
                         jawatan: 'Pensyarah Tetap',
-                        fakulti: 'FPIB',
+                        fakulti: dynamicFaculties.value[0]?.id || 'FPIB',
                         senaraiKursus: [
                             {
                                 kodKursus: '',
                                 catatan: '',
                                 folder: {
-                                    f1: false, f2_1: false, f2_2: false, f2_3: false, f3_1: false,
-                                    f3_2: false, f3_3: false, f4: false, f5_1: false, f5_2: false,
-                                    f6: false, f7_1: false, f7_2: false, f8: false, f9: false, f10: false
+                                    f1: 'TIDAK', f2_1: 'TIDAK', f2_2: 'TIDAK', f2_3: 'TIDAK', f3_1: 'TIDAK',
+                                    f3_2: 'TIDAK', f3_3: 'TIDAK', f4: 'TIDAK', f5_1: 'TIDAK', f5_2: 'TIDAK',
+                                    f6: 'TIDAK', f7_1: 'TIDAK', f7_2: 'TIDAK', f8: 'TIDAK', f9: 'TIDAK', f10: 'TIDAK'
                                 }
                             }
                         ]
@@ -984,7 +1217,7 @@
                 // Pilih semua dalam sub-folder kursus aktif
                 const handleSelectAllFolders = (value) => {
                     const activeCourse = formData.value.senaraiKursus[activeFormCourseIndex.value];
-                    if (activeCourse) {
+                    if (activeCourse && activeCourse.folder) {
                         Object.keys(activeCourse.folder).forEach(key => {
                             activeCourse.folder[key] = value;
                         });
@@ -994,50 +1227,63 @@
                 // Simpan maklumat Pensyarah & Kesemua Kursus Diajar
                 const handleSaveLecturer = () => {
                     if (!formData.value.nama) {
-                        showToast("Sila lengkapkan nama pensyarah!", "error");
+                        showCustomAlert("Ralat Kemasukan", "Sila lengkapkan nama pensyarah!");
                         return;
                     }
                     
                     const isAnyCourseEmpty = formData.value.senaraiKursus.some(k => !k.kodKursus);
                     if (isAnyCourseEmpty) {
-                        showToast("Sila lengkapkan kod bagi setiap kursus yang didaftarkan!", "error");
+                        showCustomAlert("Ralat Kemasukan", "Sila lengkapkan kod bagi setiap kursus yang didaftarkan!");
                         return;
                     }
 
+                    // Deep clone form sebelum menyimpan
+                    const dataToSave = JSON.parse(JSON.stringify(formData.value));
+
                     if (editingLecturer.value) {
                         lecturers.value = lecturers.value.map(l => 
-                            l.id === editingLecturer.value.id ? { ...l, ...formData.value } : l
+                            l.id === editingLecturer.value.id ? { ...l, ...dataToSave } : l
                         );
-                        showToast("Data pensyarah dan kesemua kursus berjaya disimpan.");
+                        showToast("Maklumat pensyarah dan kursus-kursus diajar berjaya disimpan.");
                     } else {
                         const newLecturer = {
                             id: 'L' + (lecturers.value.length + 1) + Date.now(),
-                            ...formData.value
+                            ...dataToSave
                         };
                         lecturers.value = [newLecturer, ...lecturers.value];
-                        showToast("Pendaftaran pensyarah baharu dan kursus-kursus selesai.");
+                        showToast("Pendaftaran pensyarah baharu berjaya didaftarkan.");
                     }
+
+                    // Simpan ke localStorage
+                    localStorage.setItem("kias_3state_lecturers_v2", JSON.stringify(lecturers.value));
 
                     isAdding.value = false;
                     resetFormData();
                 };
 
                 const handleDelete = (id) => {
-                    if (confirm("Adakah anda pasti untuk memadam profil pensyarah ini dan kesemua kursus diajarnya?")) {
+                    showCustomConfirm("Padam Rekod", "Adakah anda pasti untuk memadam profil pensyarah ini beserta semua rekod subjek diajarnya?", () => {
                         lecturers.value = lecturers.value.filter(l => l.id !== id);
-                        showToast("Rekod pensyarah berjaya dipadam.", "warning");
-                    }
+                        localStorage.setItem("kias_3state_lecturers_v2", JSON.stringify(lecturers.value));
+                        showToast("Rekod berjaya dipadam.", "warning");
+                    });
                 };
 
                 const getFolderStatusMapForCourse = (kursus) => {
                     return [
                         { label: "F1", active: kursus.folder.f1 },
-                        { label: "F2", active: kursus.folder.f2_1 && kursus.folder.f2_2 && kursus.folder.f2_3 },
-                        { label: "F3", active: kursus.folder.f3_1 && kursus.folder.f3_2 && kursus.folder.f3_3 },
+                        { label: "F2.1", active: kursus.folder.f2_1 },
+                        { label: "F2.2", active: kursus.folder.f2_2 },
+                        { label: "F2.3", active: kursus.folder.f2_3 },
+                        { label: "F3.1", active: kursus.folder.f3_1 },
+                        { label: "F3.2", active: kursus.folder.f3_2 },
+                        { label: "F3.3", active: kursus.folder.f3_3 },
                         { label: "F4", active: kursus.folder.f4 },
-                        { label: "F5", active: kursus.folder.f5_1 && kursus.folder.f5_2 },
+                        { label: "F5.1", active: kursus.folder.f5_1 },
+                        { label: "F5.2", active: kursus.folder.f5_2 },
                         { label: "F6", active: kursus.folder.f6 },
-                        { label: "F7", active: kursus.folder.f7_1 && kursus.folder.f7_2 },
+                        { label: "F7.1", active: kursus.folder.f7_1 },
+                        { label: "F7.2", active: kursus.folder.f7_2 },
                         { label: "F8", active: kursus.folder.f8 },
                         { label: "F9", active: kursus.folder.f9 },
                         { label: "F10", active: kursus.folder.f10 },
@@ -1052,7 +1298,7 @@
                         if (searchTerm.value) {
                             const searchLower = searchTerm.value.toLowerCase();
                             const matchNama = lecturer.nama.toLowerCase().includes(searchLower);
-                            const matchKodKursus = lecturer.senaraiKursus.some(k => k.kodKursus.toLowerCase().includes(searchLower));
+                            const matchKodKursus = lecturer.senaraiKursus && lecturer.senaraiKursus.some(k => k.kodKursus.toLowerCase().includes(searchLower));
                             if (!matchNama && !matchKodKursus) return false;
                         }
 
@@ -1073,10 +1319,10 @@
                     return lecturers.value.reduce((acc, curr) => acc + (curr.senaraiKursus ? curr.senaraiKursus.length : 0), 0);
                 });
 
-                // Penyelarasan Statistik Fakulti Dinamik mengikut data berbilang subjek
-                watch(lecturers, () => {
-                    const updatedStats = INITIAL_STATS.map(f => {
-                        const lecturersInFaculty = lecturers.value.filter(l => l.fakulti === f.singkatan);
+                // Penyelarasan Statistik Fakulti Dinamik mengikut data berbilang subjek dan fakulti dinamik
+                watch([lecturers, dynamicFaculties], () => {
+                    const updatedStats = dynamicFaculties.value.map((f, index) => {
+                        const lecturersInFaculty = lecturers.value.filter(l => l.fakulti === f.id);
                         const totalInFaculty = lecturersInFaculty.length;
                         
                         let lengkap = 0;
@@ -1090,21 +1336,53 @@
                         });
 
                         return {
-                            ...f,
-                            pensyarah: totalInFaculty > 0 ? totalInFaculty : f.pensyarah,
+                            no: index + 1,
+                            fakulti: f.name,
+                            singkatan: f.id,
+                            pensyarah: totalInFaculty,
                             lengkap: lengkap,
                             tidakLengkap: tidakLengkap,
-                            belum: totalInFaculty > 0 ? belum : f.belum
+                            belum: belum
                         };
                     });
                     stats.value = updatedStats;
+                    localStorage.setItem("kias_3state_lecturers_v2", JSON.stringify(lecturers.value));
                 }, { deep: true, immediate: true });
 
                 const getCompleteRate = (row) => {
+                    if (row.pensyarah === 0) return 0;
                     return Math.round((row.lengkap / row.pensyarah) * 100) || 0;
                 };
 
+                // --- INTEGRASI PANGKALAN DATA GOOGLE SHEET & DRIVE ---
+                const testDatabaseConnection = () => {
+                    if (!dbSettings.value.scriptUrl) {
+                        showCustomAlert("Konfigurasi Kosong", "Sila masukkan URL Google Apps Script Web App terlebih dahulu.");
+                        return;
+                    }
+                    showToast("Menguji penyambungan Google Sheets...", "info");
+                    dbSettings.value.connected = true;
+                    showToast("Sambungan disimulasikan berjaya (CORS Diaktifkan).", "success");
+                };
+
+                const disconnectDatabase = () => {
+                    dbSettings.value.connected = false;
+                    showToast("Sambungan diputuskan.", "info");
+                };
+
                 // --- PROSES CSV: IMPORT & TEMPLAT BERKELOMPOK ---
+                const processPastedExcel = () => {
+                    if (!pastedExcelText.value.trim()) {
+                        showCustomAlert("Ralat Masukan", "Sila tampal sel data dari Excel atau Google Sheets terlebih dahulu.");
+                        return;
+                    }
+                    parseCSVData(pastedExcelText.value);
+                };
+
+                const clearPasteText = () => {
+                    pastedExcelText.value = "";
+                };
+
                 const handleFileUpload = (event) => {
                     const file = event.target.files[0];
                     if (!file) return;
@@ -1121,17 +1399,24 @@
                     try {
                         const lines = text.split('\n');
                         if (lines.length < 2) {
-                            showToast("Fail CSV tidak sah!", "error");
+                            showCustomAlert("Ralat Fail", "Format data tidak lengkap atau tidak sah.");
                             return;
                         }
 
-                        const headers = lines[0].split(',').map(h => h.trim().replace(/['"']/g, ''));
+                        let delimiter = ",";
+                        if (lines[0].includes("\t")) {
+                            delimiter = "\t"; // Mengesan format tab-delimited Excel
+                        }
+
+                        const headers = lines[0].split(delimiter).map(h => h.trim().replace(/['"']/g, ''));
                         const tempLecturerMap = {};
                         let lastLecturerName = "";
+                        let lastJawatan = "Pensyarah Tetap";
+                        let lastFakulti = "FPIB";
 
                         for (let i = 1; i < lines.length; i++) {
                             if (!lines[i].trim()) continue;
-                            const cols = lines[i].split(',').map(c => c.trim().replace(/['"']/g, ''));
+                            const cols = lines[i].split(delimiter).map(c => c.trim().replace(/['"']/g, ''));
                             
                             const item = {};
                             headers.forEach((h, idx) => {
@@ -1139,46 +1424,64 @@
                             });
 
                             let currentName = item.Nama ? item.Nama.trim() : "";
-                            
-                            // Jika nama kosong, gunakan pensyarah dari baris di atasnya (kelompok kursus)
-                            if (!currentName && lastLecturerName) {
-                                currentName = lastLecturerName;
-                            } else if (currentName) {
-                                lastLecturerName = currentName;
+                            let currentJawatan = item.Jawatan ? item.Jawatan.trim() : "";
+                            let currentFakulti = item.Fakulti ? item.Fakulti.trim() : "";
+                            let currentKod = item.KodKursus ? item.KodKursus.trim() : "";
+
+                            if (!currentKod && item.Kursus) {
+                                currentKod = item.Kursus.trim();
                             }
 
-                            if (!currentName || !item.KodKursus) continue;
+                            if (!currentName && lastLecturerName) {
+                                currentName = lastLecturerName;
+                                currentJawatan = lastJawatan;
+                                currentFakulti = lastFakulti;
+                            } else if (currentName) {
+                                lastLecturerName = currentName;
+                                lastJawatan = currentJawatan || "Pensyarah Tetap";
+                                lastFakulti = currentFakulti || "FPIB";
+                            }
+
+                            if (!currentName || !currentKod) continue;
 
                             if (!tempLecturerMap[currentName]) {
                                 tempLecturerMap[currentName] = {
-                                    id: 'L_CSV_' + i + Date.now(),
+                                    id: 'L_CSV_' + i + '_' + Math.random().toString(36).substr(2, 5),
                                     nama: currentName,
-                                    jawatan: item.Jawatan || "Pensyarah Tetap",
-                                    fakulti: item.Fakulti || "FPIB",
+                                    jawatan: currentJawatan || "Pensyarah Tetap",
+                                    fakulti: currentFakulti || "FPIB",
                                     senaraiKursus: []
                                 };
                             }
 
+                            const mapStatusValue = (val) => {
+                                if (!val) return 'TIDAK';
+                                const cleanVal = val.toUpperCase().trim();
+                                if (cleanVal === 'YA' || cleanVal === 'YES' || cleanVal === '/' || cleanVal === 'TRUE' || cleanVal === 'LENGKAP') return 'YA';
+                                if (cleanVal === 'TB' || cleanVal === 'N/A' || cleanVal === 'TIDAK BERKAITAN' || cleanVal === 'TIDAK_BERKAITAN') return 'TB';
+                                return 'TIDAK';
+                            };
+
                             tempLecturerMap[currentName].senaraiKursus.push({
-                                kodKursus: item.KodKursus,
+                                kodKursus: currentKod,
                                 catatan: item.Catatan || "",
                                 folder: {
-                                    f1: String(item.Folder1).toUpperCase() === 'YA',
-                                    f2_1: String(item.Folder2_1).toUpperCase() === 'YA',
-                                    f2_2: String(item.Folder2_2).toUpperCase() === 'YA',
-                                    f2_3: String(item.Folder2_3).toUpperCase() === 'YA',
-                                    f3_1: String(item.Folder3_1).toUpperCase() === 'YA',
-                                    f3_2: String(item.Folder3_2).toUpperCase() === 'YA',
-                                    f3_3: String(item.Folder3_3).toUpperCase() === 'YA',
-                                    f4: String(item.Folder4).toUpperCase() === 'YA',
-                                    f5_1: String(item.Folder5_1).toUpperCase() === 'YA',
-                                    f5_2: String(item.Folder5_2).toUpperCase() === 'YA',
-                                    f6: String(item.Folder6).toUpperCase() === 'YA',
-                                    f7_1: String(item.Folder7_1).toUpperCase() === 'YA',
-                                    f7_2: String(item.Folder7_2).toUpperCase() === 'YA',
-                                    f8: String(item.Folder8).toUpperCase() === 'YA',
-                                    f9: String(item.Folder9).toUpperCase() === 'YA',
-                                    f10: String(item.Folder10).toUpperCase() === 'YA',
+                                    f1: mapStatusValue(item.Folder1 || item.f1),
+                                    f2_1: mapStatusValue(item.Folder2_1 || item.f2_1),
+                                    f2_2: mapStatusValue(item.Folder2_2 || item.f2_2),
+                                    f2_3: mapStatusValue(item.Folder2_3 || item.f2_3),
+                                    f3_1: mapStatusValue(item.Folder3_1 || item.f3_1),
+                                    f3_2: mapStatusValue(item.Folder3_2 || item.f3_2),
+                                    f3_3: mapStatusValue(item.Folder3_3 || item.f3_3),
+                                    f4: mapStatusValue(item.Folder4 || item.f4),
+                                    f5_1: mapStatusValue(item.Folder5_1 || item.f5_1),
+                                    f5_2: mapStatusValue(item.Folder5_2 || item.f5_2),
+                                    f6: mapStatusValue(item.Folder6 || item.f6),
+                                    f7_1: mapStatusValue(item.Folder7_1 || item.f7_1),
+                                    f7_2: mapStatusValue(item.Folder7_2 || item.f7_2),
+                                    f8: mapStatusValue(item.Folder8 || item.f8),
+                                    f9: mapStatusValue(item.Folder9 || item.f9),
+                                    f10: mapStatusValue(item.Folder10 || item.f10)
                                 }
                             });
                         }
@@ -1186,14 +1489,15 @@
                         const parsedList = Object.values(tempLecturerMap);
                         if (parsedList.length > 0) {
                             lecturers.value = [...parsedList, ...lecturers.value];
-                            showToast(`Berjaya mengimport ${parsedList.length} rekod pensyarah berkelompok daripada CSV!`);
+                            showToast(`Berjaya mengimport ${parsedList.length} rekod pensyarah secara kelompok!`);
                             activeTab.value = "dashboard";
+                            pastedExcelText.value = "";
                         } else {
-                            showToast("Tiada rekod data sah dijumpai.", "warning");
+                            showCustomAlert("Analisis Gagal", "Tiada rekod data yang sah ditemui dalam teks.");
                         }
                     } catch (err) {
                         console.error(err);
-                        showToast("Format CSV tidak sesuai.", "error");
+                        showCustomAlert("Ralat Parse", "Format data tampalan tidak disokong. Sila semak format lajur.");
                     }
                 };
 
@@ -1201,7 +1505,7 @@
                     const csvContent = "data:text/csv;charset=utf-8," 
                         + "Nama,Jawatan,Fakulti,KodKursus,Folder1,Folder2_1,Folder2_2,Folder2_3,Folder3_1,Folder3_2,Folder3_3,Folder4,Folder5_1,Folder5_2,Folder6,Folder7_1,Folder7_2,Folder8,Folder9,Folder10,Catatan\n"
                         + "Ustaz Mohd Khairul bin Ali,Pensyarah Tetap,FPIB,MPU3122,YA,YA,YA,YA,YA,YA,YA,YA,YA,YA,YA,YA,YA,YA,YA,TIDAK,Kemas kini folder 10\n"
-                        + ",,,PIA0254,TIDAK,YA,YA,YA,YA,YA,TIDAK,YA,TIDAK,TIDAK,YA,YA,YA,TIDAK,YA,TIDAK,Perlu semakan semula markah";
+                        + ",,,PIA0254,TB,YA,YA,YA,YA,YA,YA,YA,YA,YA,YA,YA,YA,YA,YA,TB,Perlu semakan semula markah";
                     
                     const encodedUri = encodeURI(csvContent);
                     const link = document.createElement("a");
@@ -1213,19 +1517,64 @@
                     showToast("Muat turun Templat CSV selesai!");
                 };
 
-                // --- INTEGRASI PANGKALAN DATA ---
-                const testDatabaseConnection = () => {
-                    showToast("Sambungan disimulasikan berjaya (CORS Diaktifkan).", "success");
-                    dbSettings.value.connected = true;
-                };
-
-                const disconnectDatabase = () => {
-                    dbSettings.value.connected = false;
-                    showToast("Sambungan diputuskan.", "info");
+                // --- DATA DEMO UNTUK PENGUJIAN ---
+                const loadDemoData = () => {
+                    lecturers.value = [
+                        {
+                            id: "demo-1",
+                            nama: "Dr. Azyantee binti Mohd Zawawi",
+                            jawatan: "Pensyarah Tetap",
+                            fakulti: "FPPI",
+                            senaraiKursus: [
+                                {
+                                    kodKursus: "MPU2133",
+                                    catatan: "Lengkap dan disahkan",
+                                    folder: { f1: "YA", f2_1: "YA", f2_2: "YA", f2_3: "YA", f3_1: "YA", f3_2: "YA", f3_3: "YA", f4: "YA", f5_1: "YA", f5_2: "YA", f6: "YA", f7_1: "YA", f7_2: "YA", f8: "YA", f9: "YA", f10: "YA" }
+                                },
+                                {
+                                    kodKursus: "MPU3452-KB1",
+                                    catatan: "Kemas kini S3P",
+                                    folder: { f1: "YA", f2_1: "YA", f2_2: "YA", f2_3: "YA", f3_1: "YA", f3_2: "YA", f3_3: "YA", f4: "YA", f5_1: "YA", f5_2: "TIDAK", f6: "YA", f7_1: "YA", f7_2: "YA", f8: "YA", f9: "YA", f10: "YA" }
+                                }
+                            ]
+                        },
+                        {
+                            id: "demo-2",
+                            nama: "Ustaz Rosnani binti Ripin",
+                            jawatan: "Pensyarah Tetap",
+                            fakulti: "FPIB",
+                            senaraiKursus: [
+                                {
+                                    kodKursus: "PIA0254",
+                                    catatan: "Rubrik tidak berkaitan untuk kursus teori ini",
+                                    folder: { f1: "TB", f2_1: "YA", f2_2: "YA", f2_3: "YA", f3_1: "YA", f3_2: "YA", f3_3: "YA", f4: "YA", f5_1: "YA", f5_2: "YA", f6: "YA", f7_1: "YA", f7_2: "YA", f8: "TB", f9: "YA", f10: "TB" }
+                                }
+                            ]
+                        },
+                        {
+                            id: "demo-3",
+                            nama: "Siti Jamilah binti Ashar",
+                            jawatan: "Pensyarah Sambilan",
+                            fakulti: "FPIB",
+                            senaraiKursus: [
+                                {
+                                    kodKursus: "MPU2233",
+                                    catatan: "Menunggu rubrik penilaian",
+                                    folder: { f1: "TIDAK", f2_1: "YA", f2_2: "YA", f2_3: "TIDAK", f3_1: "YA", f3_2: "YA", f3_3: "TIDAK", f4: "TIDAK", f5_1: "TIDAK", f5_2: "TIDAK", f6: "YA", f7_1: "YA", f7_2: "YA", f8: "TIDAK", f9: "TIDAK", f10: "TIDAK" }
+                                }
+                            ]
+                        }
+                    ];
+                    showToast("Contoh data demo KIAS berjaya dimuatkan.");
                 };
 
                 // --- MUAT TURUN PDF LENGKAP KELOMPOK KURSUS ---
                 const generatePDFReport = () => {
+                    if (lecturers.value.length === 0) {
+                        showCustomAlert("Tiada Rekod", "Pangkalan data kosong. Tiada laporan untuk dijana.");
+                        return;
+                    }
+
                     showToast("Menjana Laporan PDF berkelompok...", "info");
 
                     const { jsPDF } = window.jspdf;
@@ -1259,7 +1608,7 @@
                         item.pensyarah,
                         `${item.lengkap} orang`,
                         `${item.tidakLengkap + item.belum} orang`,
-                        `${Math.round((item.lengkap / item.pensyarah) * 100)}%`
+                        `${item.pensyarah === 0 ? 0 : Math.round((item.lengkap / item.pensyarah) * 100)}%`
                     ]);
 
                     doc.autoTable({
@@ -1276,9 +1625,8 @@
                     doc.setFont("Helvetica", "bold");
                     doc.text("2. PERINCIAN PENGHANTARAN FAIL KURSUS SETIAP STAF AKADEMIK", 15, nextY);
 
-                    const listHeaders = [["BIL", "NAMA PENSYARAH", "JAWATAN", "FAKULTI", "KURSUS", "PROGRES", "ULASAN PENYEMAK"]];
+                    const listHeaders = [["BIL", "NAMA PENSYARAH", "JAWATAN", "FAKULTI", "KURSUS DIAJAR", "PROGRES", "ULASAN PENYEMAK"]];
                     
-                    // Meratakan data kelompok kursus untuk dipaparkan secara kemas dalam baris PDF
                     const flatRows = [];
                     let runBil = 1;
 
@@ -1286,11 +1634,12 @@
                         l.senaraiKursus.forEach((k, kIdx) => {
                             flatRows.push([
                                 kIdx === 0 ? runBil : "",
-                                kIdx === 0 ? l.nama + " (" + l.jawatan + ")" : "",
+                                kIdx === 0 ? l.nama : "",
+                                kIdx === 0 ? l.jawatan : "",
                                 kIdx === 0 ? l.fakulti : "",
                                 k.kodKursus,
                                 `${getCourseProgress(k)}%`,
-                                k.catatan || "Tiada ulasan"
+                                k.catatan || "Semua fail teratur"
                             ]);
                         });
                         runBil++;
@@ -1299,17 +1648,18 @@
                     doc.autoTable({
                         startY: nextY + 4,
                         head: listHeaders,
-                        body: listRows,
+                        body: flatRows,
                         theme: 'grid',
                         headStyles: { fillColor: [30, 41, 59] },
                         styles: { fontSize: 8 },
                         columnStyles: {
-                            1: { cellWidth: 75 },
-                            2: { cellWidth: 20 },
-                            3: { cellWidth: 35 },
-                            4: { cellWidth: 20 },
+                            0: { cellWidth: 10 },
+                            1: { cellWidth: 65 },
+                            2: { cellWidth: 35 },
+                            3: { cellWidth: 20 },
+                            4: { cellWidth: 30 },
                             5: { cellWidth: 20 },
-                            6: { cellWidth: 95 }
+                            6: { cellWidth: 85 }
                         }
                     });
 
@@ -1319,27 +1669,20 @@
                     
                     if (finalY > 165) {
                         doc.addPage();
-                        doc.text("PENGESAHAN LAPORAN PPA KIAS", 15, 20);
+                        doc.text("PENGESAHAN DOKUMEN", 15, 20);
                         doc.line(15, 25, 282, 25);
                     }
 
                     doc.setFontSize(8.5);
-                    doc.setTextColor(100, 116, 139);
                     doc.text("Disediakan Oleh:", 15, signY);
                     doc.text("......................................................", 15, signY + 13);
-                    doc.setFont("Helvetica", "bold");
-                    doc.setTextColor(30, 41, 59);
                     doc.text("Penyelaras Kualiti Akademik PPA KIAS", 15, signY + 17);
 
-                    doc.setFont("Helvetica", "normal");
-                    doc.setTextColor(100, 116, 139);
                     doc.text("Disahkan Oleh:", 180, signY);
                     doc.text("......................................................", 180, signY + 13);
-                    doc.setFont("Helvetica", "bold");
-                    doc.setTextColor(30, 41, 59);
                     doc.text("Dekan / Timbalan Rektor Akademik KIAS", 180, signY + 17);
 
-                    doc.save(`Laporan_Pecahan_Fail_Kursus_KIAS.pdf`);
+                    doc.save(`Laporan_Pecahan_Fail_Kursus_KIAS_${selectedSemester.value.replace(/[\s/]+/g, '_')}.pdf`);
                     showToast("PDF Laporan Berkelompok berjaya dijana!");
                 };
 
@@ -1362,6 +1705,9 @@
                     dbSettings,
                     logoFailed,
                     activeFormCourseIndex,
+                    pastedExcelText,
+                    customAlert,
+                    customConfirm,
                     totalLecturers,
                     totalLengkap,
                     totalProgres,
@@ -1390,7 +1736,20 @@
                     handleFileUpload,
                     downloadCSVTemplate,
                     generatePDFReport,
-                    handleLogoError
+                    handleLogoError,
+                    loadDemoData,
+                    processPastedExcel,
+                    clearPasteText,
+                    executeCustomConfirm,
+                    dynamicFaculties,
+                    showEditSessionModal,
+                    editSessionName,
+                    openEditSessionModal,
+                    updateAcademicSession,
+                    showAddFacultyModal,
+                    newFacultyId,
+                    newFacultyName,
+                    addNewFaculty
                 };
             }
         }).mount('#app');
