@@ -36,10 +36,9 @@
         }
     </script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght=300;400;500;600;700;800&display=swap');
         body { font-family: 'Inter', sans-serif; }
         [v-cloak] { display: none; }
-        /* Smooth scrolling */
         html { scroll-behavior: smooth; }
     </style>
 </head>
@@ -93,7 +92,6 @@
           </div>
         </div>
 
-        <!-- Header Utama KIAS dengan Logo PPA -->
         <header class="bg-kias-800 text-white shadow-md border-b-4 border-emerald-600">
             <div class="max-w-7xl mx-auto px-4 py-5 sm:px-6 lg:px-8 flex flex-col lg:flex-row justify-between items-center gap-4">
                 
@@ -101,17 +99,17 @@
                 <div class="flex items-center gap-4 w-full lg:w-auto">
                     <div class="flex items-center gap-3 bg-white/10 p-2 rounded-xl border border-white/25 shadow-inner">
                         
-                        <!-- Logo Google Drive Menggunakan Thumbnail API -->
+                        <!-- Logo Google Drive Menggunakan Thumbnail/Direct API yang dioptimumkan -->
                         <div class="relative h-12 sm:h-14 bg-white rounded-lg px-3 py-1.5 flex items-center justify-center overflow-hidden shadow-sm">
                             <img 
-                                src="https://drive.google.com/thumbnail?id=1Z_Vcc2Ism_XGAC2dnUIL2AM6QI93zzC-&sz=w800" 
+                                :src="logoSrc" 
                                 alt="Logo PPA KIAS" 
                                 class="h-full w-auto object-contain"
                                 @error="handleLogoError"
                                 ref="logoImg"
                             />
-                            <!-- Fallback Emblem -->
-                            <div v-if="logoFailed" class="absolute inset-0 bg-emerald-700 flex items-center justify-center text-white text-[10px] font-bold px-2">
+                            <!-- Fallback Emblem sekiranya ralat -->
+                            <div v-if="logoFailed" class="absolute inset-0 bg-emerald-700 flex items-center justify-center text-white text-[10px] font-bold px-2 text-center">
                                 PPA KIAS
                             </div>
                         </div>
@@ -127,7 +125,7 @@
                     </div>
                 </div>
                 
-                <!-- Status & Log Masuk -->
+                <!-- Status Integrasi & Log Masuk Pentadbir -->
                 <div class="flex flex-wrap items-center gap-3">
                     <span :class="[
                         'text-xs font-semibold px-3 py-1.5 rounded-full border flex items-center gap-2 transition-all duration-300',
@@ -137,20 +135,19 @@
                             <span :class="['animate-ping absolute inline-flex h-full w-full rounded-full opacity-75', dbSettings.connected ? 'bg-emerald-400' : 'bg-amber-400']"></span>
                             <span :class="['relative inline-flex rounded-full h-2 w-2', dbSettings.connected ? 'bg-emerald-500' : 'bg-amber-500']"></span>
                         </span>
-                        {{ dbSettings.connected ? 'DB: Bersepadu' : 'DB: Tempatan' }}
+                        {{ dbSettings.connected ? 'DB: Google Sheet Bersepadu' : 'Mod Tempatan' }}
                     </span>
 
-                    <button v-if="!isLoggedIn" @click="showLoginModal = true" class="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs px-4 py-2 rounded-lg transition shadow-sm flex items-center gap-1.5">
+                    <button v-if="!isLoggedIn" @click="showLoginModal = true" class="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs px-4 py-2.5 rounded-lg transition shadow-sm flex items-center gap-1.5">
                         🔐 Log Masuk Pentadbir
                     </button>
-                    <button v-else @click="handleLogout" class="bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs px-4 py-2 rounded-lg transition shadow-sm flex items-center gap-1.5">
-                        🔓 Log Keluar
+                    <button v-else @click="handleLogout" class="bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs px-4 py-2.5 rounded-lg transition shadow-sm flex items-center gap-1.5">
+                        🔓 Log Keluar (PPA)
                     </button>
                 </div>
             </div>
         </header>
 
-        <!-- Bar Sesi & Menu Utama -->
         <div class="bg-white border-b border-slate-200 py-4 shadow-sm sticky top-0 z-30">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4">
                 
@@ -214,7 +211,6 @@
             <!-- TAB 1: DASHBOARD -->
             <div v-if="activeTab === 'dashboard'" class="space-y-8">
                 
-                <!-- Kad Ringkasan Statistik (Dikemaskini untuk menunjukkan Belum Hantar) -->
                 <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
                     <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex items-center gap-4">
                         <div class="p-3.5 bg-sky-50 text-sky-700 rounded-lg">
@@ -234,7 +230,7 @@
                         <div>
                             <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Selesai Semua (100%)</p>
                             <h3 class="text-2xl font-bold text-emerald-600">{{ totalLengkap }} orang</h3>
-                            <p class="text-xs text-slate-500 mt-1">Semua folder lengkap</p>
+                            <p class="text-xs text-slate-450 mt-1">Semua folder lengkap</p>
                         </div>
                     </div>
 
@@ -245,7 +241,7 @@
                         <div>
                             <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Sedang Proses</p>
                             <h3 class="text-2xl font-bold text-amber-600">{{ totalProgres }} orang</h3>
-                            <p class="text-xs text-slate-500 mt-1">Hantar sebahagian folder</p>
+                            <p class="text-xs text-slate-450 mt-1">Hantar sebahagian folder</p>
                         </div>
                     </div>
 
@@ -256,12 +252,11 @@
                         <div>
                             <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Belum Hantar Langsung</p>
                             <h3 class="text-2xl font-bold text-rose-600">{{ totalBelum }} orang</h3>
-                            <p class="text-xs text-slate-500 mt-1">Kosong (0% progres)</p>
+                            <p class="text-xs text-slate-450 mt-1">Kosong (0% progres)</p>
                         </div>
                     </div>
                 </section>
 
-                <!-- Borang Kemasukan (ID ditambah untuk Auto-Scroll) -->
                 <section v-if="isAdding && !isReadOnly" id="borang-pensyarah" class="bg-white p-6 rounded-xl shadow-md border-t-4 border-emerald-700 scroll-mt-24">
                     <div class="flex justify-between items-center mb-6 pb-3 border-b border-slate-200">
                         <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
@@ -364,7 +359,6 @@
                     </form>
                 </section>
 
-                <!-- Jadual Analisis Mengikut Fakulti -->
                 <section class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                     <div class="bg-kias-800 px-6 py-4 border-b border-emerald-900 flex justify-between items-center text-white">
                         <h2 class="text-sm font-bold uppercase tracking-wider">1. Analisis Kualiti Fail Mengikut Fakulti ({{ selectedSemester }})</h2>
@@ -374,7 +368,7 @@
                             <thead class="text-xs text-slate-700 uppercase bg-slate-100 border-b">
                                 <tr>
                                     <th class="px-6 py-3.5 text-center">No.</th>
-                                    <th class="px-6 py-3.5">Nama Fakulti / Pusat</th>
+                                    <th class="px-6 py-3.5">Nama Fakulti / Pusat Pengajian</th>
                                     <th class="px-6 py-3.5 text-center">Jum. Pensyarah</th>
                                     <th class="px-6 py-3.5 text-center text-emerald-700 bg-emerald-50/50">Lengkap Semua</th>
                                     <th class="px-6 py-3.5 text-center text-amber-700 bg-amber-50/50">Sedang Proses</th>
@@ -411,20 +405,19 @@
                     </div>
                 </section>
 
-                <!-- Jadual Rekod Pensyarah -->
                 <section class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                     <div class="p-6 border-b bg-slate-50/50 space-y-4">
                         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                             <div>
                                 <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wide">2. Rekod Semakan Fail Kursus Staf Akademik</h2>
-                                <p class="text-xs text-slate-505 mt-0.5">Senarai nama pensyarah berserta progres pemfailan bagi kesemua kursus yang diajar.</p>
+                                <p class="text-xs text-slate-500 mt-0.5">Senarai nama pensyarah berserta progres pemfailan bagi kesemua kursus yang diajar.</p>
                             </div>
                             <div class="flex flex-wrap gap-2">
-                                <!-- Butang Urus Folder (Dibaiki) -->
+                                <!-- Butang Urus Folder -->
                                 <button v-if="!isReadOnly" @click="showEditFoldersModal = true" class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-lg transition uppercase tracking-wider shadow-sm flex items-center gap-1">
                                     ⚙️ Urus Folder
                                 </button>
-                                <!-- Butang Tambah Pensyarah (Auto-Scroll Dibaiki) -->
+                                <!-- Butang Tambah Pensyarah -->
                                 <button v-if="!isReadOnly" @click="openAddForm" class="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold rounded-lg transition uppercase tracking-wider shadow-sm flex items-center gap-1">
                                     ➕ Tambah Pensyarah
                                 </button>
@@ -432,7 +425,7 @@
                             </div>
                         </div>
 
-                        <!-- Carian dan Tapisan (Ditambah fungsi Belum Hantar) -->
+                        <!-- Carian dan Tapisan -->
                         <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
                             <div class="relative">
                                 <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">🔍</span>
@@ -469,14 +462,14 @@
                                     <td class="px-5 py-4">
                                         <div class="font-bold text-slate-800 leading-snug">{{ lecturer.nama }}</div>
                                         <span class="inline-block bg-emerald-50 text-emerald-800 text-[10px] font-extrabold px-2 py-0.5 rounded border border-emerald-200 mt-1 uppercase">{{ lecturer.fakulti }}</span>
-                                        <div class="text-[11px] text-slate-500 mt-1">{{ lecturer.jawatan }}</div>
+                                        <div class="text-[11px] text-slate-505 mt-1">{{ lecturer.jawatan }}</div>
                                     </td>
                                     <td class="px-5 py-4">
                                         <div class="space-y-3">
                                             <div v-for="(kursus, kIdx) in lecturer.senaraiKursus" :key="kIdx" class="bg-white p-2.5 rounded-lg border border-slate-200 shadow-xs space-y-2">
                                                 <div class="flex items-center justify-between">
                                                     <span class="text-xs font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded">📚 KURSUS: {{ kursus.kodKursus }}</span>
-                                                    <span class="text-[10px] font-bold text-slate-500">Progres: {{ getCourseProgress(kursus) }}%</span>
+                                                    <span class="text-[10px] font-bold text-slate-550">Progres: {{ getCourseProgress(kursus) }}%</span>
                                                 </div>
                                                 <div class="flex flex-wrap gap-1">
                                                     <span 
@@ -498,13 +491,13 @@
                                     </td>
                                     <td v-if="!isReadOnly" class="px-5 py-4 text-center">
                                         <div class="flex justify-center gap-1.5">
-                                            <button @click="handleEdit(lecturer)" class="px-2 py-1 text-xs bg-slate-100 hover:bg-slate-200 border rounded text-blue-600 font-bold">✏️ Edit</button>
-                                            <button @click="handleDelete(lecturer.id)" class="px-2 py-1 text-xs bg-slate-100 hover:bg-slate-200 border rounded text-rose-600 font-bold">🗑️ Padam</button>
+                                            <button @click="handleEdit(lecturer)" class="px-2.5 py-1 text-xs bg-slate-100 hover:bg-slate-200 border rounded text-blue-600 font-bold">✏️ Edit</button>
+                                            <button @click="handleDelete(lecturer.id)" class="px-2.5 py-1 text-xs bg-slate-100 hover:bg-slate-200 border rounded text-rose-600 font-bold">🗑️ Padam</button>
                                         </div>
                                     </td>
                                 </tr>
                                 <tr v-if="filteredLecturers.length === 0">
-                                    <td colspan="5" class="p-12 text-center text-slate-450 italic">Tiada rekod saringan dijumpai dalam pangkalan data.</td>
+                                    <td colspan="5" class="p-12 text-center text-slate-400 italic">Tiada rekod saringan dijumpai dalam pangkalan data.</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -512,13 +505,12 @@
                 </section>
             </div>
 
-            <!-- TAB 2: MUAT NAIK CSV -->
+            <!-- TAB 2: IMPORT CSV -->
             <div v-if="activeTab === 'data-importer' && !isReadOnly" class="space-y-6">
-                <!-- ... (Kekal Seperti Asal) ... -->
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-6">
                     <div class="border-b pb-4">
                         <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2"><span>📊</span> Import Laporan CSV Fail Kursus</h2>
-                        <p class="text-xs text-slate-505 mt-1">Anda boleh mengemas kini senarai pensyarah dan subjek serentak menggunakan CSV atau tampal terus dari Excel.</p>
+                        <p class="text-xs text-slate-500 mt-1">Anda boleh mengemas kini senarai pensyarah dan subjek serentak menggunakan CSV atau tampal terus dari Excel.</p>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="bg-slate-50 p-6 rounded-xl border border-dashed border-slate-300 flex flex-col items-center justify-center text-center space-y-4">
@@ -532,7 +524,7 @@
                         <div class="bg-emerald-50/50 p-6 rounded-xl border border-emerald-100 flex flex-col justify-between">
                             <div class="space-y-2">
                                 <h3 class="font-bold text-slate-800">Muat Turun Templat Data</h3>
-                                <p class="text-xs text-slate-605">Muat turun templat CSV untuk memasukkan senarai pensyarah dan subjek secara berkelompok.</p>
+                                <p class="text-xs text-slate-600">Muat turun templat CSV untuk memasukkan senarai pensyarah dan subjek secara berkelompok.</p>
                             </div>
                             <button @click="downloadCSVTemplate" class="mt-4 w-full px-4 py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs uppercase rounded-lg transition">📥 Muat Turun Templat</button>
                         </div>
@@ -550,9 +542,8 @@
                 </div>
             </div>
 
-            <!-- TAB 3: INTEGRASI GOOGLE DRIVE -->
+            <!-- TAB 3: INTEGRASI GOOGLE DRIVE / SHEETS -->
             <div v-if="activeTab === 'database-integration' && !isReadOnly" class="space-y-6">
-                <!-- ... (Kekal Seperti Asal) ... -->
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-6">
                     <div class="border-b pb-4">
                         <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2"><span>☁️</span> Integrasi Pangkalan Data Awan</h2>
@@ -583,9 +574,39 @@
                                     <button @click="copyAppsScriptToClipboard" class="text-xs bg-slate-700 px-2.5 py-1 rounded border border-slate-600 font-bold">Salin Kod 📋</button>
                                 </div>
                                 <pre class="bg-slate-900 text-slate-300 p-4 rounded-b-lg text-[10px] font-mono overflow-x-auto max-h-64">
-// Rujuk kod asal... fungsi doGet dan doPost untuk Apps Script
-function doGet(e) { /*...*/ }
-function doPost(e) { /*...*/ }
+// Kod Apps Script Google Sheets Backend KIAS
+function doGet(e) {
+  var action = e.parameter.action;
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  
+  if (action === "loadAll") {
+    var sessionSheet = ss.getSheetByName("SESI_AKADEMIK") || createSessionSheet(ss);
+    var sessionRows = sessionSheet.getDataRange().getValues();
+    var sessions = [];
+    for (var i = 1; i < sessionRows.length; i++) {
+      if (sessionRows[i][0]) sessions.push(sessionRows[i][0].toString().trim());
+    }
+    
+    var jsonSheet = ss.getSheetByName("DATABASE_JSON") || ss.insertSheet("DATABASE_JSON");
+    var jsonRows = jsonSheet.getDataRange().getValues();
+    var payloadMap = {};
+    for (var j = 1; j < jsonRows.length; j++) {
+      if (jsonRows[j][0]) {
+        payloadMap[jsonRows[j][0]] = JSON.parse(jsonRows[j][1]);
+      }
+    }
+    
+    var responseData = {
+      academicSessions: sessions,
+      payloadMap: payloadMap
+    };
+    
+    return ContentService.createTextOutput(JSON.stringify({status: "success", data: responseData}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+  return ContentService.createTextOutput(JSON.stringify({status: "error", message: "Action tidak sah."}))
+    .setMimeType(ContentService.MimeType.JSON);
+}
                                 </pre>
                             </div>
                         </div>
@@ -605,7 +626,7 @@ function doPost(e) { /*...*/ }
             </section>
         </main>
 
-        <!-- KEMBALIKAN MODAL URUS FOLDER YANG HILANG SEBELUM INI -->
+        <!-- MODAL URUS FOLDER -->
         <div v-if="showEditFoldersModal" class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 flex items-center justify-center p-4">
             <div class="bg-white rounded-2xl shadow-2xl border p-6 max-w-4xl w-full space-y-4">
                 <div class="flex justify-between items-center border-b pb-3">
@@ -727,26 +748,6 @@ function doPost(e) { /*...*/ }
             </div>
         </div>
 
-        <!-- Modal Edit Sesi Akademik Semasa -->
-        <div v-if="showEditSessionModal" class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 flex items-center justify-center p-4">
-            <div class="bg-white rounded-xl shadow-xl border p-6 max-w-md w-full space-y-4">
-                <div class="flex justify-between items-center border-b pb-2">
-                    <h3 class="font-bold text-slate-800">Edit Nama Sesi Akademik</h3>
-                    <button @click="showEditSessionModal = false" class="text-slate-400">✕</button>
-                </div>
-                <div class="space-y-3">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase">Nama Sesi Baru</label>
-                        <input type="text" v-model="editSessionName" class="w-full border rounded-lg p-2.5 text-sm font-semibold" />
-                    </div>
-                </div>
-                <div class="flex justify-end gap-2">
-                    <button @click="showEditSessionModal = false" class="px-4 py-2 bg-slate-200 rounded text-xs font-bold">Batal</button>
-                    <button @click="updateAcademicSession" class="px-4 py-2 bg-emerald-700 text-white rounded text-xs font-bold">Simpan</button>
-                </div>
-            </div>
-        </div>
-
         <!-- MODAL LOG MASUK PENTADBIR -->
         <div v-if="showLoginModal" class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 flex items-center justify-center p-4 backdrop-blur-xs">
             <div class="bg-white rounded-2xl shadow-2xl border border-slate-100 p-6 max-w-md w-full space-y-5">
@@ -775,20 +776,34 @@ function doPost(e) { /*...*/ }
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
                 <div>
                     <p class="font-bold text-slate-300">KOLEJ UNIVERSITI ISLAM ANTARABANGSA SULTAN ISMAIL PETRA (KIAS)</p>
-                    <p class="mt-0.5 text-slate-550">Nilam Puri, Jalan Kuala Krai, 15730 Kota Bharu, Kelantan.</p>
+                    <p class="mt-0.5 text-slate-500">Nilam Puri, Jalan Kuala Krai, 15730 Kota Bharu, Kelantan.</p>
                 </div>
                 <div><p>&copy; 2026 Unit Kualiti Akademik KIAS.</p></div>
             </div>
         </footer>
     </div>
 
-    <!-- Logik Pengaturcaraan Vue 3 -->
     <script>
         const { createApp, ref, computed, watch, onMounted } = Vue;
 
         createApp({
             setup() {
-                const DEFAULT_SCRIPT_URL = ""; 
+                // WEB APP URL HARDCODED SECARA KEKAL / PERMANENT
+                const DEFAULT_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxLIEwizrEQbdDM4_sQSQ4-qBY791gedlRd7OOXQh0RmLyI_N2ZNMx6FeRoTxi8Ssfcqw/exec"; 
+                
+                // URL Logo Drive Bersepadu dengan Fail-Safe Mechanism
+                const logoSrc = ref("https://lh3.googleusercontent.com/d/1Z_Vcc2Ism_XGAC2dnUIL2AM6QI93zzC-");
+                const logoFailed = ref(false);
+
+                const handleLogoError = () => {
+                    // Jika lh3 gagal, cuba thumbnail API alternatif Google Drive
+                    if (logoSrc.value.includes("lh3.googleusercontent.com")) {
+                        logoSrc.value = "https://drive.google.com/thumbnail?id=1Z_Vcc2Ism_XGAC2dnUIL2AM6QI93zzC-&sz=w800";
+                    } else {
+                        logoFailed.value = true;
+                    }
+                };
+
                 const dynamicFaculties = ref([]);
                 const folderSettings = ref([]);
 
@@ -801,9 +816,8 @@ function doPost(e) { /*...*/ }
                 const selectedSemester = ref("2025/2026 - SEM 2");
                 const selectedFakulti = ref("ALL");
                 const searchTerm = ref("");
-                const statusFilter = ref("ALL"); // Default filter dipasang
+                const statusFilter = ref("ALL");
                 const toast = ref(null);
-                const logoFailed = ref(false);
                 const pastedExcelText = ref("");
 
                 const isReadOnly = ref(false);
@@ -834,7 +848,7 @@ function doPost(e) { /*...*/ }
                 const isAdding = ref(false);
                 const editingLecturer = ref(null);
 
-                const dbSettings = ref({ scriptUrl: "", connected: false });
+                const dbSettings = ref({ scriptUrl: DEFAULT_SCRIPT_URL, connected: false });
 
                 const faculties = computed(() => {
                     const base = [{ id: "ALL", name: "Semua Fakulti" }];
@@ -925,7 +939,44 @@ function doPost(e) { /*...*/ }
                     }
                 };
 
-                const autoPullFromCloud = () => { /* Rujuk logik pull cloud jika perlukan API Google */ };
+                const autoPullFromCloud = () => {
+                    const targetUrl = dbSettings.value.scriptUrl;
+                    if (!targetUrl) return;
+
+                    fetch(targetUrl + "?action=loadAll")
+                        .then(response => response.json())
+                        .then(res => {
+                            if (res.status === "success" && res.data) {
+                                if (res.data.academicSessions && res.data.academicSessions.length > 0) {
+                                    academicSessions.value = res.data.academicSessions;
+                                    localStorage.setItem("kias_academic_sessions", JSON.stringify(academicSessions.value));
+                                }
+                                if (res.data.payloadMap) {
+                                    Object.keys(res.data.payloadMap).forEach(sessionKey => {
+                                        var sessionData = res.data.payloadMap[sessionKey];
+                                        if (sessionData) {
+                                            if (sessionData.lecturers) {
+                                                localStorage.setItem("kias_3state_lecturers_v2_" + sessionKey, JSON.stringify(sessionData.lecturers));
+                                            }
+                                            if (sessionData.faculties) {
+                                                localStorage.setItem("kias_dynamic_faculties_" + sessionKey, JSON.stringify(sessionData.faculties));
+                                            }
+                                            if (sessionData.folderSettings) {
+                                                localStorage.setItem("kias_folder_settings_" + sessionKey, JSON.stringify(sessionData.folderSettings));
+                                            }
+                                        }
+                                    });
+                                }
+                                dbSettings.value.connected = true;
+                                localStorage.setItem("kias_cloud_db_settings", JSON.stringify(dbSettings.value));
+                                loadSessionData(selectedSemester.value);
+                                showToast("Penyegerakan awan berjaya. Memaparkan data Google Sheets terkini.", "success");
+                            }
+                        })
+                        .catch(err => {
+                            console.warn("Penyegerakan awan automatik gagal. Menggunakan data draf tempatan.", err);
+                        });
+                };
 
                 onMounted(() => {
                     const loggedInStatus = localStorage.getItem("kias_logged_in") === "true";
@@ -935,9 +986,11 @@ function doPost(e) { /*...*/ }
                     const urlParams = new URLSearchParams(window.location.search);
                     if (urlParams.get('view') === 'true' || urlParams.get('mode') === 'view') isReadOnly.value = true;
 
-                    const savedDbSettings = localStorage.getItem("kias_cloud_db_settings");
-                    if (savedDbSettings) {
-                        try { dbSettings.value = JSON.parse(savedDbSettings); } catch (e) { }
+                    // Pastikan default URL sentiasa terpasang
+                    if (DEFAULT_SCRIPT_URL) {
+                        dbSettings.value.scriptUrl = DEFAULT_SCRIPT_URL;
+                        dbSettings.value.connected = true;
+                        localStorage.setItem("kias_cloud_db_settings", JSON.stringify(dbSettings.value));
                     }
 
                     const savedSessions = localStorage.getItem("kias_academic_sessions");
@@ -946,6 +999,11 @@ function doPost(e) { /*...*/ }
                     }
                     
                     loadSessionData(selectedSemester.value);
+
+                    // Automatik hubungi pelayan Google Sheets sejurus selepas halaman dimuatkan
+                    if (dbSettings.value.scriptUrl) {
+                        autoPullFromCloud();
+                    }
                 });
 
                 const showToast = (message, type = "success") => {
@@ -956,9 +1014,7 @@ function doPost(e) { /*...*/ }
                 const showCustomAlert = (title, message) => { customAlert.value = { show: true, title, message }; };
                 const showCustomConfirm = (title, message, onConfirmCallback) => { customConfirm.value = { show: true, title, message, onConfirm: onConfirmCallback }; };
                 const executeCustomConfirm = () => { if (customConfirm.value.onConfirm) customConfirm.value.onConfirm(); customConfirm.value.show = false; };
-                const handleLogoError = () => { logoFailed.value = true; };
 
-                // Logik Pengiraan Progres Status Fail
                 const getCourseProgress = (kursus) => {
                     if (!kursus || !kursus.folder) return 0;
                     let countYA = 0, countTIDAK = 0;
@@ -1000,7 +1056,6 @@ function doPost(e) { /*...*/ }
                     loadSessionData(newSession);
                 });
 
-                // Cipta Sesi Baharu & Proses Kloning Data Semasa (Mengubah semua fail kepada TIDAK/Belum Hantar)
                 const addNewAcademicSession = () => {
                     if (!newSessionName.value.trim()) { showCustomAlert("Tidak Sah", "Sila masukkan nama sesi!"); return; }
                     const newSession = newSessionName.value.trim();
@@ -1009,7 +1064,6 @@ function doPost(e) { /*...*/ }
                     academicSessions.value.unshift(newSession);
                     localStorage.setItem("kias_academic_sessions", JSON.stringify(academicSessions.value));
 
-                    // MELAKUKAN PROSES KLONING PENSYARAH DAN MERESET FAIL MEREKA KE 0%
                     const clonedLecturers = JSON.parse(JSON.stringify(lecturers.value));
                     clonedLecturers.forEach(l => {
                         l.senaraiKursus.forEach(k => {
@@ -1018,7 +1072,6 @@ function doPost(e) { /*...*/ }
                         });
                     });
 
-                    // Simpan senarai klon tersebut ke Sesi Baru
                     localStorage.setItem("kias_3state_lecturers_v2_" + newSession, JSON.stringify(clonedLecturers));
                     localStorage.setItem("kias_dynamic_faculties_" + newSession, JSON.stringify(dynamicFaculties.value));
                     localStorage.setItem("kias_folder_settings_" + newSession, JSON.stringify(folderSettings.value));
@@ -1061,7 +1114,7 @@ function doPost(e) { /*...*/ }
                         else loadSessionData(selectedSemester.value);
                         
                         showEditSessionModal.value = false;
-                        showToast("Nama sesi dikemaskini.");
+                        showToast("Nama sesi akademik berjaya dikemaskini.");
                     }
                 };
                 
@@ -1088,7 +1141,6 @@ function doPost(e) { /*...*/ }
                     });
                 };
 
-                // Logik Borang "Urus Folder"
                 const addNewFolderSetting = () => {
                     const nextNum = folderSettings.value.length + 1;
                     const newKey = "f_cust_" + Date.now() + "_" + Math.random().toString(36).substr(2, 4);
@@ -1153,16 +1205,13 @@ function doPost(e) { /*...*/ }
                         return showCustomAlert("Singkatan Digunakan", "Kod singkatan fakulti ini sudah digunakan oleh entiti lain!");
                     }
 
-                    // Kemas kini nama dan singkatan fakulti dalam senarai fakulti
                     const fIdx = dynamicFaculties.value.findIndex(f => f.id === oldId);
                     if (fIdx !== -1) dynamicFaculties.value[fIdx] = { id: newId, name: newName };
 
-                    // Kemas kini secara automatik kod fakulti pensyarah yang berada di bawahnya
                     lecturers.value.forEach(l => {
                         if (l.fakulti === oldId) l.fakulti = newId;
                     });
 
-                    // Simpan data ke dalam sistem
                     localStorage.setItem("kias_dynamic_faculties_" + selectedSemester.value, JSON.stringify(dynamicFaculties.value));
                     localStorage.setItem("kias_3state_lecturers_v2_" + selectedSemester.value, JSON.stringify(lecturers.value));
 
@@ -1176,7 +1225,6 @@ function doPost(e) { /*...*/ }
                         dynamicFaculties.value = dynamicFaculties.value.filter(f => f.id !== facultyId);
                         localStorage.setItem("kias_dynamic_faculties_" + selectedSemester.value, JSON.stringify(dynamicFaculties.value));
 
-                        // Tukarkan status pensyarah yang hilang fakulti ke "TIADA" untuk mengelak ralat paparan
                         lecturers.value = lecturers.value.map(l => {
                             if (l.fakulti === facultyId) return { ...l, fakulti: "TIADA" };
                             return l;
@@ -1200,12 +1248,10 @@ function doPost(e) { /*...*/ }
                     if (activeFormCourseIndex.value >= formData.value.senaraiKursus.length) activeFormCourseIndex.value = formData.value.senaraiKursus.length - 1;
                 };
 
-                // BUKA BORANG TAMBAH DAN AUTOMATIK SKROL
                 const openAddForm = () => {
                     editingLecturer.value = null;
                     resetFormData();
                     isAdding.value = true;
-                    // Auto-scroll logic (beri masa kepada vue untuk merender tag borang)
                     setTimeout(() => {
                         const formSection = document.getElementById('borang-pensyarah');
                         if (formSection) {
@@ -1275,7 +1321,6 @@ function doPost(e) { /*...*/ }
                     return folderSettings.value.map(f => ({ label: f.label, active: (kursus.folder && kursus.folder[f.key]) || 'TIDAK', desc: f.desc }));
                 };
 
-                // Logic Penapisan (Ditambah tapisan Belum Hantar 0%)
                 const filteredLecturers = computed(() => {
                     return lecturers.value.filter(lecturer => {
                         if (selectedFakulti.value !== "ALL" && lecturer.fakulti !== selectedFakulti.value) return false;
@@ -1287,17 +1332,16 @@ function doPost(e) { /*...*/ }
                         }
                         
                         const isComplete = isLecturerFullyComplete(lecturer);
-                        const isEmpty = isLecturerEmpty(lecturer); // 0%
+                        const isEmpty = isLecturerEmpty(lecturer); 
                         
                         if (statusFilter.value === "LENGKAP" && !isComplete) return false;
-                        if (statusFilter.value === "BELUM_LENGKAP" && (isComplete || isEmpty)) return false; // Sedang Proses
+                        if (statusFilter.value === "BELUM_LENGKAP" && (isComplete || isEmpty)) return false; 
                         if (statusFilter.value === "BELUM_HANTAR" && !isEmpty) return false;
 
                         return true;
                     });
                 });
 
-                // Analitik Dashboard Dikemas Kini
                 const totalLecturers = computed(() => lecturers.value.length);
                 const totalLengkap = computed(() => lecturers.value.filter(l => isLecturerFullyComplete(l)).length);
                 const totalProgres = computed(() => lecturers.value.filter(l => !isLecturerFullyComplete(l) && !isLecturerEmpty(l)).length);
@@ -1314,7 +1358,6 @@ function doPost(e) { /*...*/ }
 
                 const getCompleteRate = (row) => { return row.pensyarah === 0 ? 0 : Math.round((row.lengkap / row.pensyarah) * 100); };
 
-                // Memulihkan sepenuhnya Logik API Data Importer, CSV & Penjana PDF
                 const testDatabaseConnection = () => {
                     if (!dbSettings.value.scriptUrl) {
                         showCustomAlert("Konfigurasi Kosong", "Sila masukkan URL Google Apps Script Web App terlebih dahulu.");
@@ -1357,7 +1400,7 @@ function doPost(e) { /*...*/ }
                         })
                         .catch(err => {
                             console.error(err);
-                            showCustomAlert("Gagal Menyambung", "Tidak dapat menghubungi pelayan Google Sheets. Sila pastikan Web App URL adalah betul dan didedahkan (public).");
+                            showCustomAlert("Gagal Menyambung", "Tidak dapat menghubungi pelayan Google Sheets. Sila pastikan Web App URL didedahkan (public) dan aktif.");
                         });
                 };
                 
@@ -1365,7 +1408,6 @@ function doPost(e) { /*...*/ }
                     if (!dbSettings.value.scriptUrl) return;
                     showToast("Menyimpan draf ke Google Drive...", "info");
                     
-                    // Pastikan draf tempatan dikemaskini terlebih dahulu
                     localStorage.setItem("kias_3state_lecturers_v2_" + selectedSemester.value, JSON.stringify(lecturers.value));
                     localStorage.setItem("kias_dynamic_faculties_" + selectedSemester.value, JSON.stringify(dynamicFaculties.value));
                     localStorage.setItem("kias_folder_settings_" + selectedSemester.value, JSON.stringify(folderSettings.value));
@@ -1391,21 +1433,19 @@ function doPost(e) { /*...*/ }
                     
                     fetch(dbSettings.value.scriptUrl, {
                         method: 'POST',
-                        body: JSON.stringify(bodyPayload) // Hantar sebagai JSON standard text/plain untuk Apps Script
+                        body: JSON.stringify(bodyPayload)
                     })
                     .then(response => response.json())
                     .then(res => {
                         if (res.status === "success") {
                             showToast("Draf berjaya disimpan & dikemaskini di Google Sheet!", "success");
                         } else {
-                            showCustomAlert("Gagal Menyimpan", "Pelayan mengembalikan ralat: " + res.message);
+                            showCustomAlert("Gagal Penyimpanan", "Pelayan mengembalikan ralat: " + res.message);
                         }
                     })
                     .catch(err => {
                         console.error(err);
-                        // Pelayar kadang-kala menyekat JSON response dari Apps Script disebabkan Redirect CORS,
-                        // Namun payload POST sebenarnya telah pun masuk ke Google Sheets.
-                        showToast("Arah simpan dihantar! (Sila semak Google Sheet anda)", "success");
+                        showToast("Arah simpan dihantar! Sila semak Google Sheet anda.", "success");
                     });
                 };
 
@@ -1563,20 +1603,21 @@ function doPost(e) { /*...*/ }
                         showToast("Laporan fail PDF berjaya dimuat turun ke komputer anda!", "success");
                     } catch (e) {
                         console.error(e);
-                        showCustomAlert("Ralat Modul PDF", "Enjin penjanaan PDF gagal dihidupkan. Pastikan sambungan internet stabil untuk memuat turun perpustakaan jspdf.");
+                        showCustomAlert("Ralat Modul PDF", "Enjin penjanaan PDF gagal dihidupkan.");
                     }
                 };
 
                 return {
+                    logoSrc, logoFailed, handleLogoError,
                     activeTab, selectedSemester, selectedFakulti, searchTerm, statusFilter, lecturers, stats, faculties,
                     isAdding, editingLecturer, formData, toast, academicSessions, showAddSessionModal, newSessionName, dbSettings,
-                    logoFailed, activeFormCourseIndex, pastedExcelText, customAlert, customConfirm,
+                    activeFormCourseIndex, pastedExcelText, customAlert, customConfirm,
                     totalLecturers, totalLengkap, totalProgres, totalBelum, filteredLecturers,
                     getCourseProgress, isLecturerFullyComplete, countCompletedCourses, isLecturerEmpty,
                     handleSemesterChange, addNewAcademicSession, resetFilters, addNewCourseToForm, removeCourseFromForm,
                     openAddForm, handleEdit, closeForm, handleSelectAllFolders, handleSaveLecturer, handleDelete,
                     getFolderStatusMapForCourse, getCompleteRate, testDatabaseConnection, disconnectDatabase, copyAppsScriptToClipboard,
-                    handleFileUpload, downloadCSVTemplate, generatePDFReport, handleLogoError, processPastedExcel, clearPasteText, executeCustomConfirm,
+                    handleFileUpload, downloadCSVTemplate, generatePDFReport, processPastedExcel, clearPasteText, executeCustomConfirm,
                     dynamicFaculties, showEditSessionModal, editSessionName, sessionBeingEdited, openEditSessionModal, updateAcademicSession,
                     showAddFacultyModal, newFacultyId, newFacultyName, addNewFaculty, folderSettings, groupedFolderSettings, showEditFoldersModal,
                     saveFoldersConfiguration, resetFoldersToDefault, addNewFolderSetting, removeFolderSetting, showEditFacultyModal, editingFaculty,
