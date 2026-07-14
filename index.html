@@ -104,10 +104,10 @@
                     <!-- Integrasi Logo daripada Google Drive Pautan Anda -->
                     <div class="flex items-center gap-3 bg-white/10 p-2 rounded-xl border border-white/25 shadow-inner">
                         
-                        <!-- Logo Image Container (Ditukar kepada bentuk Segi Empat Tepat: w-36 h-14) -->
-                        <div class="relative w-36 h-14 bg-white rounded-lg p-1.5 flex items-center justify-center overflow-hidden shadow-sm">
+                        <!-- Logo Image Container (Ditukar kepada bentuk Segi Empat Tepat) -->
+                        <div class="relative w-48 h-14 bg-white rounded-lg p-1.5 flex items-center justify-center overflow-hidden shadow-sm">
                             <img 
-                                src="https://lh3.googleusercontent.com/d/1Z_Vcc2Ism_XGAC2dnUIL2AMQI93zzC-" 
+                                src="Logo PPA.png" 
                                 alt="Logo PPA KIAS" 
                                 class="w-full h-full object-contain"
                                 @error="handleLogoError"
@@ -1010,6 +1010,21 @@ function updateHumanReadableSheet(ss, payloadMap) {
                         </button>
                     </div>
                 </div>
+
+                <!-- Senarai Sesi Sedia Ada -->
+                <div class="space-y-2 mt-4 max-h-60 overflow-y-auto pr-2">
+                    <div v-for="(sem, index) in academicSessions" :key="sem" class="flex justify-between items-center bg-white p-3 border rounded-lg shadow-sm">
+                        <span class="text-sm font-bold text-slate-700">{{ sem }}</span>
+                        <div class="flex gap-1.5">
+                            <button @click="moveSession(index, -1)" :disabled="index === 0" class="px-2 py-1 bg-slate-100 hover:bg-slate-200 rounded text-xs disabled:opacity-50">⬆️</button>
+                            <button @click="moveSession(index, 1)" :disabled="index === academicSessions.length - 1" class="px-2 py-1 bg-slate-100 hover:bg-slate-200 rounded text-xs disabled:opacity-50">⬇️</button>
+                            <button @click="openInlineEditSession(sem)" class="px-2 py-1 bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200 rounded text-xs font-bold">✏️ Edit</button>
+                            <button @click="deleteAcademicSession(sem)" class="px-2 py-1 bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 rounded text-xs font-bold">🗑️ Padam</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- MODAL LOG MASUK PENTADBIR -->
         <div v-if="showLoginModal" class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 flex items-center justify-center p-4 backdrop-blur-xs">
