@@ -905,21 +905,21 @@ function doPost(e) { /*...*/ }
                         try { folderSettings.value = JSON.parse(savedFolders); } catch (e) { }
                     } else {
                         folderSettings.value = [
-                            { key: "f1", label: "F1", groupName: "1. Labsheet Amali", desc: "Labsheet Amali / Bengkel" },
+                            { key: "f1", label: "F1", groupName: "1. Labsheet Amali", desc: "Labsheet Amali" },
                             { key: "f2_1", label: "F2.1", groupName: "2. Rancangan Pengajaran", desc: "2.1 Jadual Kuliah" },
-                            { key: "f2_2", label: "F2.2", groupName: "2. Rancangan Pengajaran", desc: "2.2 RP / Penjajaran Konstruktif (CA)" },
+                            { key: "f2_2", label: "F2.2", groupName: "2. Rancangan Pengajaran", desc: "2.2 Rancangan Pengajaran (RP)" },
                             { key: "f2_3", label: "F2.3", groupName: "2. Rancangan Pengajaran", desc: "2.3 Laporan Pertemuan Terperinci" },
                             { key: "f3_1", label: "F3.1", groupName: "3. Rekod & Kehadiran", desc: "3.1 Senarai Pendaftaran Pelajar" },
-                            { key: "f3_2", label: "F3.2", groupName: "3. Rekod & Kehadiran", desc: "3.2 Rekod Kehadiran (Kuliah)" },
+                            { key: "f3_2", label: "F3.2", groupName: "3. Rekod & Kehadiran", desc: "3.2 Rekod Kehadiran Pelajar" },
                             { key: "f3_3", label: "F3.3", groupName: "3. Rekod & Kehadiran", desc: "3.3 Laporan Kehadiran Keseluruhan" },
                             { key: "f4", label: "F4", groupName: "4. Moderation & Vetting", desc: "Laporan Moderation & Vetting Soalan" },
-                            { key: "f5_1", label: "F5.1", groupName: "5. Analisis Pengukuran", desc: "5.1 Laporan Markah" },
+                            { key: "f5_1", label: "F5.1", groupName: "5. Analisis Pengukuran", desc: "5.1 Laporan Markah Akhir" },
                             { key: "f5_2", label: "F5.2", groupName: "5. Analisis Pengukuran", desc: "5.2 Laporan S3P" },
                             { key: "f6", label: "F6", groupName: "6. JSU", desc: "Jadual Spesifikasi Ujian (JSU)" },
-                            { key: "f7_1", label: "F7.1", groupName: "7. PB & Peperiksaan Akhir", desc: "7.1 Set Soalan (PB)" },
-                            { key: "f7_2", label: "F7.2", groupName: "7. PB & Peperiksaan Akhir", desc: "7.2 Skema Pemarkahan" },
+                            { key: "f7_1", label: "F7.1", groupName: "7. PB & Peperiksaan Akhir", desc: "7.1 Set Soalan, Skema dan Skrip Jawapan PB" },
+                            { key: "f7_2", label: "F7.2", groupName: "7. PB & Peperiksaan Akhir", desc: "7.2 Set Soalan, Skema dan Skrip Jawapan PA" },
                             { key: "f8", label: "F8", groupName: "8. Rubrik Penilaian", desc: "Rubrik Penilaian" },
-                            { key: "f9", label: "F9", groupName: "9. Penilaian Pelajar", desc: "Penilaian Pelajar Terhadap Staf (e-SuPP)" },
+                            { key: "f9", label: "F9", groupName: "9. Penilaian Pelajar", desc: "Penilaian Pelajar Terhadap Staf" },
                             { key: "f10", label: "F10", groupName: "10. Kuliah Online", desc: "Bukti/Rekod Pelajar Mengikuti Kuliah Online" }
                         ];
                     }
@@ -1104,7 +1104,31 @@ function doPost(e) { /*...*/ }
                     showEditFoldersModal.value = false;
                     showToast("Struktur senarai semak dikemaskini.");
                 };
-                const resetFoldersToDefault = () => { /* Reset kepada senarai asal, rujuk init atas */ };
+                const resetFoldersToDefault = () => {
+                    showCustomConfirm("Kembalikan Ke Asal", "Pasti mahu set semula senarai semak folder kepada standard asal (10 Folder)? Perubahan ini akan terpakai pada sesi ini sahaja.", () => {
+                        folderSettings.value = [
+                            { key: "f1", label: "F1", groupName: "1. Labsheet Amali", desc: "Labsheet Amali" },
+                            { key: "f2_1", label: "F2.1", groupName: "2. Rancangan Pengajaran", desc: "2.1 Jadual Kuliah" },
+                            { key: "f2_2", label: "F2.2", groupName: "2. Rancangan Pengajaran", desc: "2.2 Rancangan Pengajaran (RP)" },
+                            { key: "f2_3", label: "F2.3", groupName: "2. Rancangan Pengajaran", desc: "2.3 Laporan Pertemuan Terperinci" },
+                            { key: "f3_1", label: "F3.1", groupName: "3. Rekod & Kehadiran", desc: "3.1 Senarai Pendaftaran Pelajar" },
+                            { key: "f3_2", label: "F3.2", groupName: "3. Rekod & Kehadiran", desc: "3.2 Rekod Kehadiran Pelajar" },
+                            { key: "f3_3", label: "F3.3", groupName: "3. Rekod & Kehadiran", desc: "3.3 Laporan Kehadiran Keseluruhan" },
+                            { key: "f4", label: "F4", groupName: "4. Moderation & Vetting", desc: "Laporan Moderation & Vetting Soalan" },
+                            { key: "f5_1", label: "F5.1", groupName: "5. Analisis Pengukuran", desc: "5.1 Laporan Markah Akhir" },
+                            { key: "f5_2", label: "F5.2", groupName: "5. Analisis Pengukuran", desc: "5.2 Laporan S3P" },
+                            { key: "f6", label: "F6", groupName: "6. JSU", desc: "Jadual Spesifikasi Ujian (JSU)" },
+                            { key: "f7_1", label: "F7.1", groupName: "7. PB & Peperiksaan Akhir", desc: "7.1 Set Soalan, Skema dan Skrip Jawapan PB" },
+                            { key: "f7_2", label: "F7.2", groupName: "7. PB & Peperiksaan Akhir", desc: "7.2 Set Soalan, Skema dan Skrip Jawapan PA" },
+                            { key: "f8", label: "F8", groupName: "8. Rubrik Penilaian", desc: "Rubrik Penilaian" },
+                            { key: "f9", label: "F9", groupName: "9. Penilaian Pelajar", desc: "Penilaian Pelajar Terhadap Staf" },
+                            { key: "f10", label: "F10", groupName: "10. Kuliah Online", desc: "Bukti/Rekod Pelajar Mengikuti Kuliah Online" }
+                        ];
+                        localStorage.setItem("kias_folder_settings_" + selectedSemester.value, JSON.stringify(folderSettings.value));
+                        showEditFoldersModal.value = false;
+                        showToast("Struktur folder diset semula ke konfigurasi asal.");
+                    });
+                };
 
                 const addNewFaculty = () => {
                     if (!newFacultyId.value.trim() || !newFacultyName.value.trim()) return showCustomAlert("Tidak Sah", "Isi Singkatan dan Nama!");
