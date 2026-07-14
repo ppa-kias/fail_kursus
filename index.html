@@ -1031,7 +1031,40 @@ function doPost(e) { /*...*/ }
 
                 const openInlineEditSession = (sem) => { editSessionName.value = sem; sessionBeingEdited.value = sem; showEditSessionModal.value = true; };
                 const openEditSessionModal = () => { editSessionName.value = selectedSemester.value; sessionBeingEdited.value = selectedSemester.value; showEditSessionModal.value = true; };
-                const updateAcademicSession = () => { /* Logik sama dengan asal */ };
+                
+                const updateAcademicSession = () => {
+                    if (!editSessionName.value.trim()) return showCustomAlert("Tidak Sah", "Nama sesi tidak boleh kosong!");
+                    const oldSession = sessionBeingEdited.value || selectedSemester.value;
+                    const newSession = editSessionName.value.trim();
+                    if (oldSession !== newSession && academicSessions.value.includes(newSession)) return showCustomAlert("Sedia Ada", "Sesi wujud!");
+
+                    const index = academicSessions.value.indexOf(oldSession);
+                    if (index !== -1) {
+                        academicSessions.value[index] = newSession;
+                        localStorage.setItem("kias_academic_sessions", JSON.stringify(academicSessions.value));
+                        
+                        const tempLec = localStorage.getItem("kias_3state_lecturers_v2_" + oldSession);
+                        const tempFac = localStorage.getItem("kias_dynamic_faculties_" + oldSession);
+                        const tempFol = localStorage.getItem("kias_folder_settings_" + oldSession);
+                        
+                        if (tempLec) localStorage.setItem("kias_3state_lecturers_v2_" + newSession, tempLec);
+                        if (tempFac) localStorage.setItem("kias_dynamic_faculties_" + newSession, tempFac);
+                        if (tempFol) localStorage.setItem("kias_folder_settings_" + newSession, tempFol);
+                        
+                        if (oldSession !== newSession) {
+                            localStorage.removeItem("kias_3state_lecturers_v2_" + oldSession);
+                            localStorage.removeItem("kias_dynamic_faculties_" + oldSession);
+                            localStorage.removeItem("kias_folder_settings_" + oldSession);
+                        }
+                        
+                        if (selectedSemester.value === oldSession) selectedSemester.value = newSession;
+                        else loadSessionData(selectedSemester.value);
+                        
+                        showEditSessionModal.value = false;
+                        showToast("Nama sesi dikemaskini.");
+                    }
+                };
+                
                 const moveSession = (index, direction) => {
                     const targetIndex = index + direction;
                     if (targetIndex < 0 || targetIndex >= academicSessions.value.length) return;
@@ -1040,7 +1073,20 @@ function doPost(e) { /*...*/ }
                     academicSessions.value[targetIndex] = temp;
                     localStorage.setItem("kias_academic_sessions", JSON.stringify(academicSessions.value));
                 };
-                const deleteAcademicSession = (sessionName) => { /* Logik sama */ };
+                
+                const deleteAcademicSession = (sessionName) => {
+                    if (academicSessions.value.length <= 1) return showCustomAlert("Dihalang", "Mesti ada sekurang-kurangnya satu sesi aktif.");
+                    showCustomConfirm("Padam Sesi", `Pasti memadam sesi "${sessionName}"? Semua data di bawahnya akan hilang secara kekal!`, () => {
+                        academicSessions.value = academicSessions.value.filter(s => s !== sessionName);
+                        localStorage.setItem("kias_academic_sessions", JSON.stringify(academicSessions.value));
+                        localStorage.removeItem("kias_3state_lecturers_v2_" + sessionName);
+                        localStorage.removeItem("kias_dynamic_faculties_" + sessionName);
+                        localStorage.removeItem("kias_folder_settings_" + sessionName);
+                        if (selectedSemester.value === sessionName) selectedSemester.value = academicSessions.value[0];
+                        else loadSessionData(selectedSemester.value);
+                        showToast(`Sesi "${sessionName}" dipadamkan.`, "warning");
+                    });
+                };
 
                 // Logik Borang "Urus Folder"
                 const addNewFolderSetting = () => {
@@ -1071,8 +1117,50 @@ function doPost(e) { /*...*/ }
                 };
 
                 const openEditFacultyModal = (row) => { editingFaculty.value = { originalId: row.singkatan, id: row.singkatan, name: row.fakulti }; showEditFacultyModal.value = true; };
-                const updateFaculty = () => { /* Logik sama dengan fail lama */ showEditFacultyModal.value = false; };
-                const deleteFaculty = (facultyId) => { /* Logik sama dengan fail lama */ };
+                
+                const updateFaculty = () => {
+                    if (!editingFaculty.value.id.trim() || !editingFaculty.value.name.trim()) return showCustomAlert("Input Tidak Sah", "Sila isi singkatan dan nama penuh fakulti!");
+                    
+                    const oldId = editingFaculty.value.originalId;
+                    const newId = editingFaculty.value.id.toUpperCase().trim();
+                    const newName = editingFaculty.value.name.toUpperCase().trim();
+
+                    if (oldId !== newId && dynamicFaculties.value.some(f => f.id === newId)) {
+                        return showCustomAlert("Singkatan Digunakan", "Kod singkatan fakulti ini sudah digunakan oleh entiti lain!");
+                    }
+
+                    // Kemas kini nama dan singkatan fakulti dalam senarai fakulti
+                    const fIdx = dynamicFaculties.value.findIndex(f => f.id === oldId);
+                    if (fIdx !== -1) dynamicFaculties.value[fIdx] = { id: newId, name: newName };
+
+                    // Kemas kini secara automatik kod fakulti pensyarah yang berada di bawahnya
+                    lecturers.value.forEach(l => {
+                        if (l.fakulti === oldId) l.fakulti = newId;
+                    });
+
+                    // Simpan data ke dalam sistem
+                    localStorage.setItem("kias_dynamic_faculties_" + selectedSemester.value, JSON.stringify(dynamicFaculties.value));
+                    localStorage.setItem("kias_3state_lecturers_v2_" + selectedSemester.value, JSON.stringify(lecturers.value));
+
+                    showEditFacultyModal.value = false;
+                    editingFaculty.value = null;
+                    showToast("Maklumat fakulti berjaya dikemaskini.");
+                };
+
+                const deleteFaculty = (facultyId) => {
+                    showCustomConfirm("Padam Fakulti", `Adakah anda pasti mahu memadam fakulti (${facultyId}) ini? Rekod pensyarah di bawahnya akan ditukar status fakultinya ke 'TIADA'.`, () => {
+                        dynamicFaculties.value = dynamicFaculties.value.filter(f => f.id !== facultyId);
+                        localStorage.setItem("kias_dynamic_faculties_" + selectedSemester.value, JSON.stringify(dynamicFaculties.value));
+
+                        // Tukarkan status pensyarah yang hilang fakulti ke "TIADA" untuk mengelak ralat paparan
+                        lecturers.value = lecturers.value.map(l => {
+                            if (l.fakulti === facultyId) return { ...l, fakulti: "TIADA" };
+                            return l;
+                        });
+                        localStorage.setItem("kias_3state_lecturers_v2_" + selectedSemester.value, JSON.stringify(lecturers.value));
+                        showToast("Fakulti dipadam. Rekod pensyarah dikekalkan.", "warning");
+                    });
+                };
 
                 const resetFilters = () => { selectedFakulti.value = "ALL"; searchTerm.value = ""; statusFilter.value = "ALL"; };
 
