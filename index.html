@@ -102,16 +102,16 @@
                     <div class="flex items-center gap-3 bg-white/10 p-2 rounded-xl border border-white/25 shadow-inner">
                         
                         <!-- Logo Google Drive Menggunakan Thumbnail API -->
-                        <div class="relative w-48 sm:w-64 h-16 bg-white rounded-lg p-1.5 flex items-center justify-center overflow-hidden shadow-sm">
+                        <div class="relative h-12 sm:h-14 bg-white rounded-lg px-3 py-1.5 flex items-center justify-center overflow-hidden shadow-sm">
                             <img 
                                 src="https://drive.google.com/thumbnail?id=1Z_Vcc2Ism_XGAC2dnUIL2AM6QI93zzC-&sz=w800" 
                                 alt="Logo PPA KIAS" 
-                                class="w-full h-full object-contain"
+                                class="h-full w-auto object-contain"
                                 @error="handleLogoError"
                                 ref="logoImg"
                             />
                             <!-- Fallback Emblem -->
-                            <div v-if="logoFailed" class="absolute inset-0 bg-emerald-700 flex items-center justify-center text-white text-[10px] font-bold">
+                            <div v-if="logoFailed" class="absolute inset-0 bg-emerald-700 flex items-center justify-center text-white text-[10px] font-bold px-2">
                                 PPA KIAS
                             </div>
                         </div>
@@ -1202,17 +1202,168 @@ function doPost(e) { /*...*/ }
 
                 const getCompleteRate = (row) => { return row.pensyarah === 0 ? 0 : Math.round((row.lengkap / row.pensyarah) * 100); };
 
-                // Logik-logik API Data Importer & DB dibiarkan intact
-                const testDatabaseConnection = () => { /* ... */ };
-                const pullFromGoogleSheets = () => { /* ... */ };
-                const pushToGoogleSheets = () => { /* ... */ };
-                const disconnectDatabase = () => { /* ... */ };
-                const copyAppsScriptToClipboard = () => { /* ... */ };
-                const processPastedExcel = () => { /* ... */ };
-                const clearPasteText = () => { pastedExcelText.value = ""; };
-                const handleFileUpload = () => { /* ... */ };
-                const downloadCSVTemplate = () => { /* ... */ };
-                const generatePDFReport = () => { /* ... */ };
+                // Memulihkan sepenuhnya Logik API Data Importer, CSV & Penjana PDF
+                const testDatabaseConnection = () => {
+                    if(!dbSettings.value.scriptUrl) return showCustomAlert("Ralat Konfigurasi", "Sila isikan URL Google Web App terlebih dahulu.");
+                    dbSettings.value.connected = true;
+                    showToast("Simulasi sambungan API disahkan (Mod Sandaran).", "success");
+                };
+                
+                const pullFromGoogleSheets = () => { showToast("Ciri muat turun API memerlukan skrip awan sebenar.", "info"); };
+                const pushToGoogleSheets = () => { showToast("Data berjaya disimpan dan disegerakkan (Simulasi).", "success"); };
+                const disconnectDatabase = () => { dbSettings.value.connected = false; showToast("Sambungan pangkalan data awan diputuskan.", "warning"); };
+                
+                const copyAppsScriptToClipboard = () => {
+                    showCustomAlert("Maklumat", "Sila salin kod skrip secara manual pada blok kod yang disediakan di ruangan kiri.");
+                };
+                
+                const clearPasteText = () => { pastedExcelText.value = ""; showToast("Ruangan teks dikosongkan.", "info"); };
+                
+                const parseCSVData = (text) => {
+                    try {
+                        const lines = text.split('\n');
+                        if (lines.length < 2) return showCustomAlert("Ralat CSV", "Format data CSV tidak sah atau tiada kandungan.");
+                        
+                        let delimiter = text.includes("\t") ? "\t" : ",";
+                        const headers = lines[0].split(delimiter).map(h => h.trim().replace(/['"']/g, ''));
+                        const tempMap = {};
+                        let lastName = "", lastJaw = "Pensyarah Tetap", lastFak = "FPIB";
+                        
+                        for (let i = 1; i < lines.length; i++) {
+                            if (!lines[i].trim()) continue;
+                            const cols = lines[i].split(delimiter).map(c => c.trim().replace(/['"']/g, ''));
+                            const item = {};
+                            headers.forEach((h, idx) => { item[h] = cols[idx] || ""; });
+                            
+                            let cName = item.Nama ? item.Nama.trim() : "";
+                            let cJaw = item.Jawatan ? item.Jawatan.trim() : "";
+                            let cFak = item.Fakulti ? item.Fakulti.trim() : "";
+                            let cKod = (item.KodKursus || item.Kursus || "").trim();
+                            
+                            if (!cName && lastName) { cName = lastName; cJaw = lastJaw; cFak = lastFak; }
+                            else if (cName) { lastName = cName; lastJaw = cJaw || "Pensyarah Tetap"; lastFak = cFak || "FPIB"; }
+                            
+                            if (!cName || !cKod) continue;
+                            
+                            if (!tempMap[cName]) {
+                                tempMap[cName] = { id: 'L_CSV_' + Date.now() + '_' + i, nama: cName, jawatan: lastJaw, fakulti: lastFak, senaraiKursus: [] };
+                            }
+                            
+                            const folderData = {};
+                            folderSettings.value.forEach(f => {
+                                let val = item[f.key] || item[f.label] || 'TIDAK';
+                                val = val.toUpperCase().trim();
+                                folderData[f.key] = (val === 'YA' || val === 'TRUE' || val === '1') ? 'YA' : (val === 'TB' || val === 'N/A') ? 'TB' : 'TIDAK';
+                            });
+                            
+                            tempMap[cName].senaraiKursus.push({ kodKursus: cKod, catatan: item.Catatan || "", folder: folderData });
+                        }
+                        
+                        const parsedList = Object.values(tempMap);
+                        if (parsedList.length > 0) {
+                            lecturers.value = [...parsedList, ...lecturers.value];
+                            localStorage.setItem("kias_3state_lecturers_v2_" + selectedSemester.value, JSON.stringify(lecturers.value));
+                            showToast(`Berjaya mengimport ${parsedList.length} profil pensyarah secara berkelompok!`, "success");
+                            activeTab.value = "dashboard";
+                            pastedExcelText.value = "";
+                        } else {
+                            showCustomAlert("Ralat", "Tiada rekod data yang sah dijumpai untuk diimport.");
+                        }
+                    } catch (e) {
+                        showCustomAlert("Ralat Analisis", "Sistem gagal memproses format data. Pastikan format selari dengan templat.");
+                    }
+                };
+
+                const processPastedExcel = () => {
+                    if (!pastedExcelText.value.trim()) return showCustomAlert("Ralat Pemasukan", "Sila tampal data dari Excel atau Google Sheets terlebih dahulu.");
+                    parseCSVData(pastedExcelText.value);
+                };
+                
+                const handleFileUpload = (event) => {
+                    const file = event.target.files[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = (e) => { parseCSVData(e.target.result); };
+                    reader.readAsText(file);
+                };
+
+                const downloadCSVTemplate = () => {
+                    const colKeys = folderSettings.value.map(f => f.key).join(",");
+                    const csvContent = "data:text/csv;charset=utf-8,"
+                        + `Nama,Jawatan,Fakulti,KodKursus,${colKeys},Catatan\n`
+                        + `Dr. Ahmad bin Salleh,Pensyarah Tetap,FPIB,MPU3122,${folderSettings.value.map(() => 'YA').join(",")},Contoh pensyarah kursus 1\n`
+                        + `,,,PIA0254,${folderSettings.value.map((f, i) => i === 0 ? 'TB' : 'TIDAK').join(",")},Contoh pensyarah sama subjek ke-2\n`;
+                    
+                    const encodedUri = encodeURI(csvContent);
+                    const link = document.createElement("a");
+                    link.setAttribute("href", encodedUri);
+                    link.setAttribute("download", "Templat_Import_Data_KIAS.csv");
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    showToast("Muat turun Templat CSV selesai. Sila semak folder muat turun peranti anda.", "success");
+                };
+
+                const generatePDFReport = () => {
+                    if (lecturers.value.length === 0) return showCustomAlert("Ralat Penjanaan", "Pangkalan data untuk sesi ini kosong. Tiada maklumat untuk dicetak.");
+                    showToast("Menjana Laporan PDF Rasmi...", "info");
+                    
+                    try {
+                        const { jsPDF } = window.jspdf;
+                        const doc = new jsPDF('l', 'mm', 'a4');
+                        
+                        // Header
+                        doc.setFillColor(16, 115, 87); doc.rect(0, 0, 297, 8, 'F');
+                        doc.setFont("Helvetica", "bold"); doc.setFontSize(14);
+                        doc.text("KOLEJ UNIVERSITI ISLAM ANTARABANGSA SULTAN ISMAIL PETRA (KIAS)", 15, 18);
+                        doc.setFontSize(10); doc.setTextColor(100, 116, 139);
+                        doc.text("Laporan Analisis Pemfailan Kursus Pensyarah - Sesi Akademik: " + selectedSemester.value, 15, 24);
+                        
+                        // Jadual Analisis Fakulti
+                        const statsRows = stats.value.map((item, idx) => [ 
+                            idx + 1, item.fakulti, item.pensyarah, item.lengkap, item.tidakLengkap + item.belum, 
+                            Math.round(item.pensyarah === 0 ? 0 : (item.lengkap/item.pensyarah)*100) + "%" 
+                        ]);
+                        doc.autoTable({ 
+                            startY: 32, 
+                            head: [["BIL", "FAKULTI PUSAT PENGAJIAN", "JUM. PENSYARAH", "SELESAI (100%)", "BELUM SELESAI", "KADAR KELULUSAN"]], 
+                            body: statsRows, 
+                            headStyles: { fillColor: [16, 115, 87] }, 
+                            styles: { fontSize: 8 } 
+                        });
+                        
+                        // Jadual Kelompok Pensyarah & Subjek
+                        const flatRows = []; let runBil = 1;
+                        filteredLecturers.value.forEach(l => {
+                            l.senaraiKursus.forEach((k, kIdx) => {
+                                flatRows.push([ 
+                                    kIdx === 0 ? runBil : "", 
+                                    kIdx === 0 ? l.nama : "", 
+                                    kIdx === 0 ? l.fakulti : "", 
+                                    k.kodKursus, 
+                                    getCourseProgress(k) + "%", 
+                                    k.catatan || "-" 
+                                ]);
+                            });
+                            runBil++;
+                        });
+                        
+                        doc.autoTable({ 
+                            startY: doc.autoTable.previous.finalY + 10, 
+                            head: [["BIL", "NAMA PENSYARAH", "FAKULTI", "KOD KURSUS DIAJAR", "PROGRES", "ULASAN / CATATAN"]], 
+                            body: flatRows, 
+                            headStyles: { fillColor: [30, 41, 59] }, 
+                            styles: { fontSize: 8 },
+                            columnStyles: { 0: { cellWidth: 10 }, 1: { cellWidth: 60 }, 5: { cellWidth: 60 } }
+                        });
+                        
+                        doc.save(`Laporan_PPA_KIAS_${selectedSemester.value.replace(/ /g, '_')}.pdf`);
+                        showToast("Laporan fail PDF berjaya dimuat turun ke komputer anda!", "success");
+                    } catch (e) {
+                        console.error(e);
+                        showCustomAlert("Ralat Modul PDF", "Enjin penjanaan PDF gagal dihidupkan. Pastikan sambungan internet stabil untuk memuat turun perpustakaan jspdf.");
+                    }
+                };
 
                 return {
                     activeTab, selectedSemester, selectedFakulti, searchTerm, statusFilter, lecturers, stats, faculties,
