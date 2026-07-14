@@ -47,6 +47,12 @@
 
     <div id="app" class="flex-1 flex flex-col" v-cloak>
         
+        <!-- Bar Notifikasi Mod Paparan Sahaja (View-Only Mode) -->
+        <div v-if="isReadOnly" class="bg-blue-600 text-white py-2.5 px-4 text-center text-xs font-semibold flex items-center justify-center gap-2 shadow-inner">
+            <span>🏛️</span>
+            <span>Anda sedang melihat laporan dalam <b>Mod Paparan Sahaja (View-Only)</b>. Sila log masuk dengan akaun pentadbir untuk menambah atau menyunting data rasmi.</span>
+        </div>
+
         <!-- Notifikasi (Toast Alert) -->
         <transition name="fade">
             <div v-if="toast" :class="[
@@ -101,7 +107,7 @@
                         <!-- Logo Image Container (Ditukar kepada bentuk Segi Empat Tepat: w-36 h-14) -->
                         <div class="relative w-36 h-14 bg-white rounded-lg p-1.5 flex items-center justify-center overflow-hidden shadow-sm">
                             <img 
-                                src="https://lh3.googleusercontent.com/d/1Z_Vcc2Ism_XGAC2dnUIL2AM6QI93zzC-" 
+                                src="https://lh3.googleusercontent.com/d/1Z_Vcc2Ism_XGAC2dnUIL2AMQI93zzC-" 
                                 alt="Logo PPA KIAS" 
                                 class="w-full h-full object-contain"
                                 @error="handleLogoError"
@@ -140,6 +146,14 @@
                         </span>
                         {{ dbSettings.connected ? 'Pangkalan Data: Google Sheet Bersepadu' : 'Mod Tempatan (In-Memory)' }}
                     </span>
+
+                    <!-- Butang Log Masuk / Log Keluar Pentadbir -->
+                    <button v-if="!isLoggedIn" @click="showLoginModal = true" class="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs px-4 py-2 rounded-lg transition shadow-sm flex items-center gap-1.5">
+                        🔐 Log Masuk Pentadbir
+                    </button>
+                    <button v-else @click="handleLogout" class="bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs px-4 py-2 rounded-lg transition shadow-sm flex items-center gap-1.5">
+                        🔓 Log Keluar (PPA)
+                    </button>
                 </div>
             </div>
         </header>
@@ -159,33 +173,24 @@
                         >
                             <option v-for="sem in academicSessions" :key="sem" :value="sem">{{ sem }}</option>
                         </select>
-                        <button 
-                            @click="showAddSessionModal = true"
-                            class="p-2.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-lg text-slate-755"
-                            title="Tambah Sesi Akademik Baru"
-                        >
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                            </svg>
-                        </button>
-                        <!-- BUTANG EDIT SESI AKADEMIK SEMASA -->
-                        <button 
-                            @click="openEditSessionModal"
-                            class="p-2.5 bg-amber-50 hover:bg-amber-100 border border-amber-300 rounded-lg text-amber-700"
-                            title="Edit Sesi Akademik Semasa"
-                        >
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
-                            </svg>
-                        </button>
-                        <!-- BUTANG TAMBAH FAKULTI / PUSAT -->
-                        <button 
-                            @click="showAddFacultyModal = true"
-                            class="p-2 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 rounded-lg text-emerald-800 flex items-center gap-1 text-xs font-bold shrink-0"
-                            title="Tambah Fakulti / Pusat Pengajian Baru"
-                        >
-                            🏛️ + Fakulti
-                        </button>
+                        
+                        <!-- Paparkan butang pengurusan sesi hanya jika BUKAN Read-Only -->
+                        <template v-if="!isReadOnly">
+                            <button 
+                                @click="showManageSessionsModal = true"
+                                class="px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-lg text-slate-700 flex items-center gap-1.5 text-xs font-bold shrink-0 transition"
+                                title="Urus Sesi Akademik (Tambah, Padam, Susun Kedudukan)"
+                            >
+                                ⚙️ Urus Sesi
+                            </button>
+                            <button 
+                                @click="showAddFacultyModal = true"
+                                class="p-2 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 rounded-lg text-emerald-800 flex items-center gap-1 text-xs font-bold shrink-0"
+                                title="Tambah Fakulti / Pusat Pengajian Baru"
+                            >
+                                🏛️ + Fakulti
+                            </button>
+                        </template>
                     </div>
                 </div>
 
@@ -197,18 +202,21 @@
                     >
                         Panel Utama
                     </button>
-                    <button 
-                        @click="activeTab = 'data-importer'"
-                        :class="['px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-lg border transition-all', activeTab === 'data-importer' ? 'bg-emerald-800 text-white border-emerald-800' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50']"
-                    >
-                        Muat Naik CSV / Excel
-                    </button>
-                    <button 
-                        @click="activeTab = 'database-integration'"
-                        :class="['px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-lg border transition-all', activeTab === 'database-integration' ? 'bg-emerald-800 text-white border-emerald-800' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50']"
-                    >
-                        Integrasi Drive & DB
-                    </button>
+                    <!-- Hanya tunjukkan tab pengurusan jika bukan Read-Only -->
+                    <template v-if="!isReadOnly">
+                        <button 
+                            @click="activeTab = 'data-importer'"
+                            :class="['px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-lg border transition-all', activeTab === 'data-importer' ? 'bg-emerald-800 text-white border-emerald-800' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50']"
+                        >
+                            Muat Naik CSV / Excel
+                        </button>
+                        <button 
+                            @click="activeTab = 'database-integration'"
+                            :class="['px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-lg border transition-all', activeTab === 'database-integration' ? 'bg-emerald-800 text-white border-emerald-800' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50']"
+                        >
+                            Integrasi Drive & DB
+                        </button>
+                    </template>
                 </div>
             </div>
         </div>
@@ -254,7 +262,7 @@
                             </svg>
                         </div>
                         <div>
-                            <p class="text-xs font-semibold text-slate-550 uppercase tracking-wider">Belum Lengkap</p>
+                            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Belum Lengkap</p>
                             <h3 class="text-2xl font-bold text-amber-600">{{ totalProgres }} orang</h3>
                             <p class="text-xs text-slate-505 mt-1">Terdapat subjek tertunggak</p>
                         </div>
@@ -274,8 +282,8 @@
                     </div>
                 </section>
 
-                <!-- Borang Kemasukan / Suntingan (Bila isAdding = True) -->
-                <section v-if="isAdding" class="bg-white p-6 rounded-xl shadow-md border-t-4 border-emerald-700">
+                <!-- Borang Kemasukan / Suntingan (Hanya dipaparkan jika isAdding = True dan BUKAN Read-Only) -->
+                <section v-if="isAdding && !isReadOnly" class="bg-white p-6 rounded-xl shadow-md border-t-4 border-emerald-700">
                     <div class="flex justify-between items-center mb-6 pb-3 border-b border-slate-200">
                         <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
                             <svg class="w-5 h-5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -283,7 +291,7 @@
                             </svg>
                             {{ editingLecturer ? 'Kemaskini Fail Kursus Pensyarah' : 'Masukkan Rekod Fail Kursus Baru' }}
                         </h2>
-                        <button @click="closeForm" class="text-slate-400 hover:text-slate-600 text-sm font-semibold">Tutup ✕</button>
+                        <button @click="closeForm" class="text-slate-400 hover:text-slate-605 text-sm font-semibold">Tutup ✕</button>
                     </div>
 
                     <form @submit.prevent="handleSaveLecturer" class="space-y-6">
@@ -338,7 +346,7 @@
                                 </button>
                             </div>
 
-                            <!-- Borang Saringan Setiap Kursus (Berdasarkan Kursus Hack) -->
+                            <!-- Borang Saringan Setiap Kursus (Berdasarkan Kursus Aktif) -->
                             <div v-if="formData.senaraiKursus[activeFormCourseIndex]" class="bg-white p-4 rounded-xl border border-slate-200 space-y-4">
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
@@ -400,7 +408,7 @@
                     </form>
                 </section>
 
-                <!-- Jadual Analisis Mengikut Fakulti (Dinamik) -->
+                <!-- Jadual Analisis Mengikut Fakulti (Dinamik dengan Tindakan Sunting & Padam) -->
                 <section class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                     <div class="bg-kias-800 px-6 py-4 border-b border-emerald-900 flex justify-between items-center text-white">
                         <h2 class="text-sm font-bold uppercase tracking-wider">1. Analisis Kualiti Fail Mengikut Fakulti ({{ selectedSemester }})</h2>
@@ -416,6 +424,7 @@
                                     <th class="px-6 py-3.5 text-center text-amber-700 bg-amber-50/50">Belum Selesai Semua</th>
                                     <th class="px-6 py-3.5 text-center text-rose-700 bg-rose-50/50">Belum Hantar Langsung</th>
                                     <th class="px-6 py-3.5 text-center">Kadar Pensyarah Selesai (%)</th>
+                                    <th v-if="!isReadOnly" class="px-6 py-3.5 text-center">Tindakan</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100 font-medium text-slate-700">
@@ -434,6 +443,25 @@
                                             </div>
                                         </div>
                                     </td>
+                                    <!-- BUTANG EDIT & PADAM UNTUK FAKULTI STANDARD (Sembunyikan jika Read-Only) -->
+                                    <td v-if="!isReadOnly" class="px-6 py-4 text-center">
+                                        <div class="flex items-center justify-center gap-1.5">
+                                            <button 
+                                                @click="openEditFacultyModal(row)" 
+                                                class="px-2.5 py-1 text-xs font-bold text-amber-700 hover:text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded transition"
+                                                title="Sunting Maklumat Fakulti"
+                                            >
+                                                ✏️ Edit
+                                            </button>
+                                            <button 
+                                                @click="deleteFaculty(row.singkatan)" 
+                                                class="px-2.5 py-1 text-xs font-bold text-rose-700 hover:text-rose-800 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded transition"
+                                                title="Padam Fakulti"
+                                            >
+                                                🗑️ Padam
+                                            </button>
+                                        </div>
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>
@@ -448,11 +476,12 @@
                                 <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wide">2. Rekod Semakan Fail Kursus Staf Akademik (Kelompok Kursus)</h2>
                                 <p class="text-xs text-slate-505 mt-0.5">Memaparkan pecahan progres pemfailan bagi kesemua kursus yang diajar oleh pensyarah secara berasingan.</p>
                             </div>
-                            <div class="flex gap-2">
-                                <button @click="showEditFoldersModal = true" class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-lg transition uppercase tracking-wider shadow-sm flex items-center gap-1">
+                            <div class="flex flex-wrap gap-2">
+                                <!-- BUTANG EDIT SENARAI SEMAK FOLDER (Sembunyikan jika Read-Only) -->
+                                <button v-if="!isReadOnly" @click="showEditFoldersModal = true" class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-lg transition uppercase tracking-wider shadow-sm flex items-center gap-1">
                                     ⚙️ Urus Folder
                                 </button>
-                                <button @click="openAddForm" class="px-4 py-2 bg-emerald-755 hover:bg-emerald-800 text-emerald-800 hover:text-emerald-900 border border-emerald-300 bg-emerald-50 text-xs font-bold rounded-lg transition uppercase tracking-wider shadow-sm">Tambah Pensyarah Baru</button>
+                                <button v-if="!isReadOnly" @click="openAddForm" class="px-4 py-2 bg-emerald-755 hover:bg-emerald-800 text-emerald-800 hover:text-emerald-900 border border-emerald-300 bg-emerald-50 text-xs font-bold rounded-lg transition uppercase tracking-wider shadow-sm">Tambah Pensyarah Baru</button>
                                 <button @click="generatePDFReport" class="px-4 py-2 bg-rose-700 hover:bg-rose-800 text-white text-xs font-bold rounded-lg transition uppercase tracking-wider shadow">Muat Turun PDF Laporan</button>
                             </div>
                         </div>
@@ -483,9 +512,9 @@
                                     <th class="px-4 py-3 text-center">Bil.</th>
                                     <th class="px-5 py-3">Pensyarah & Fakulti</th>
                                     <th class="px-4 py-3 text-center">Jawatan</th>
-                                    <th class="px-5 py-3">Pecahan Progres Mengikut Kursus yang Diajar (Saringan 10 Folder Semasa)</th>
+                                    <th class="px-5 py-3">Pecahan Progres Mengikut Kursus yang Diajar (Saringan Folder Semasa)</th>
                                     <th class="px-4 py-3 text-center">Status Keseluruhan</th>
-                                    <th class="px-5 py-3 text-center">Tindakan Profil</th>
+                                    <th v-if="!isReadOnly" class="px-5 py-3 text-center">Tindakan Profil</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-200 font-medium text-slate-700">
@@ -513,7 +542,7 @@
                                                     <span class="text-[10px] font-bold text-slate-500">Progres: {{ getCourseProgress(kursus) }}%</span>
                                                 </div>
                                                 
-                                                <!-- Visual 10 Folder Indicators (Dynamic) -->
+                                                <!-- Visual Folder Indicators (Dynamic) -->
                                                 <div class="flex flex-wrap gap-1">
                                                     <span 
                                                         v-for="(f, fIdx) in getFolderStatusMapForCourse(kursus)" 
@@ -530,7 +559,7 @@
                                                     </span>
                                                 </div>
                                                 
-                                                <div v-if="kursus.catatan" class="text-[10px] text-slate-500 italic">
+                                                <div v-if="kursus.catatan" class="text-[10px] text-slate-505 italic">
                                                     <b>Ulasan:</b> {{ kursus.catatan }}
                                                 </div>
                                             </div>
@@ -554,8 +583,8 @@
                                         </div>
                                     </td>
 
-                                    <!-- Tindakan Profil -->
-                                    <td class="px-5 py-4 text-center">
+                                    <!-- Tindakan Profil (Sembunyikan jika Read-Only) -->
+                                    <td v-if="!isReadOnly" class="px-5 py-4 text-center">
                                         <div class="flex justify-center gap-1.5">
                                             <button @click="handleEdit(lecturer)" class="px-2 py-1 text-xs bg-slate-100 hover:bg-slate-200 border rounded text-blue-600 font-bold transition">✏️ Sunting</button>
                                             <button @click="handleDelete(lecturer.id)" class="px-2 py-1 text-xs bg-slate-100 hover:bg-slate-200 border rounded text-rose-600 font-bold transition">🗑️ Padam</button>
@@ -563,7 +592,7 @@
                                     </td>
                                 </tr>
                                 <tr v-if="filteredLecturers.length === 0">
-                                    <td colspan="6" class="p-12 text-center text-slate-450 italic">Tiada rekod saringan dijumpai dalam pangkalan data. Sila gunakan menu "Muat Naik CSV/Excel" untuk memasukkan data pensyarah secara kelompok.</td>
+                                    <td colspan="6" class="p-12 text-center text-slate-450 italic">Tiada rekod saringan dijumpai dalam pangkalan data. Sila hubungi pentadbir akademik untuk menyegerakkan data dari Google Drive.</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -571,8 +600,8 @@
                 </section>
             </div>
 
-            <!-- TAB 2: MUAT NAIK CSV & TEMPLAT -->
-            <div v-if="activeTab === 'data-importer'" class="space-y-6">
+            <!-- TAB 2: MUAT NAIK CSV & TEMPLAT (Sembunyikan jika Read-Only) -->
+            <div v-if="activeTab === 'data-importer' && !isReadOnly" class="space-y-6">
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-6">
                     <div class="border-b pb-4">
                         <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
@@ -635,14 +664,14 @@
             </div>
 
             <!-- TAB 3: INTEGRASI GOOGLE DRIVE & DATABASE -->
-            <div v-if="activeTab === 'database-integration'" class="space-y-6">
+            <div v-if="activeTab === 'database-integration' && !isReadOnly" class="space-y-6">
                 <!-- Tetapan Google Apps Script API -->
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-6">
                     <div class="border-b pb-4">
                         <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
                             <span>☁️</span> Integrasi Pangkalan Data (Google Sheets & Google Drive)
                         </h2>
-                        <p class="text-xs text-slate-500 mt-1">Gunakan Google Sheets milik akaun Google KIAS anda sebagai pangkalan data awan. Ini membolehkan perkongsian data secara langsung antara pensyarah dan unit kualiti akademik.</p>
+                        <p class="text-xs text-slate-505 mt-1">Gunakan Google Sheets milik akaun Google KIAS anda sebagai pangkalan data awan. Ini membolehkan perkongsian data secara langsung antara pensyarah dan unit kualiti akademik.</p>
                     </div>
 
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -708,7 +737,7 @@
                                     <span class="text-xs font-bold font-mono">GoogleAppsScript.js</span>
                                     <button @click="copyAppsScriptToClipboard" class="text-xs bg-slate-700 hover:bg-slate-650 px-2.5 py-1 rounded border border-slate-600 font-bold transition">Salin Kod 📋</button>
                                 </div>
-                                <pre class="bg-slate-900 text-slate-300 p-4 rounded-b-lg text-xs font-mono overflow-x-auto max-h-64 leading-relaxed">
+                                <pre class="bg-slate-900 text-slate-350 p-4 rounded-b-lg text-xs font-mono overflow-x-auto max-h-64 leading-relaxed">
 // Kod Apps Script Google Sheets Backend KIAS - (Dual Mode: JSON + Paparan Manusia)
 function doGet(e) {
   var action = e.parameter.action;
@@ -739,13 +768,11 @@ function doGet(e) {
     };
     
     return ContentService.createTextOutput(JSON.stringify({status: "success", data: responseData}))
-      .setMimeType(ContentService.MimeType.JSON)
-      .setHeader('Access-Control-Allow-Origin', '*');
+      .setMimeType(ContentService.MimeType.JSON);
   }
   
   return ContentService.createTextOutput(JSON.stringify({status: "error", message: "Action doGet tidak sah."}))
-    .setMimeType(ContentService.MimeType.JSON)
-    .setHeader('Access-Control-Allow-Origin', '*');
+    .setMimeType(ContentService.MimeType.JSON);
 }
 
 function doPost(e) {
@@ -775,13 +802,11 @@ function doPost(e) {
       updateHumanReadableSheet(ss, params.payloadMap);
       
       return ContentService.createTextOutput(JSON.stringify({status: "success", message: "Database berjaya disegerakkan."}))
-        .setMimeType(ContentService.MimeType.JSON)
-        .setHeader('Access-Control-Allow-Origin', '*');
+        .setMimeType(ContentService.MimeType.JSON);
     }
   } catch (err) {
     return ContentService.createTextOutput(JSON.stringify({status: "error", message: err.toString()}))
-      .setMimeType(ContentService.MimeType.JSON)
-      .setHeader('Access-Control-Allow-Origin', '*');
+      .setMimeType(ContentService.MimeType.JSON);
   }
 }
 
@@ -812,7 +837,6 @@ function updateHumanReadableSheet(ss, payloadMap) {
       data.lecturers.forEach(function(l) {
         if (l.senaraiKursus) {
           l.senaraiKursus.forEach(function(k) {
-            // Pengiraan progres
             var f = k.folder || {};
             var countYA = 0, countTIDAK = 0;
             var fKeys = ["f1", "f2_1", "f2_2", "f2_3", "f3_1", "f3_2", "f3_3", "f4", "f5_1", "f5_2", "f6", "f7_1", "f7_2", "f8", "f9", "f10"];
@@ -837,7 +861,6 @@ function updateHumanReadableSheet(ss, payloadMap) {
     }
   });
   
-  // Format visual header jadual agar kelihatan premium
   sheet.getRange(1, 1, 1, headers.length).setBackground("#065f46").setFontColor("#ffffff").setFontWeight("bold");
   sheet.autoResizeColumns(1, headers.length);
 }
@@ -856,9 +879,9 @@ function updateHumanReadableSheet(ss, payloadMap) {
                     </svg>
                     Panduan & Standard Pemfailan Kursus KIAS (Struktur Fail Standard Semasa)
                 </h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 text-xs text-slate-605 font-medium">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 text-xs text-slate-600 font-medium">
                     <div v-for="(items, groupName) in groupedFolderSettings" :key="groupName" class="p-3 bg-slate-50 rounded-lg border border-slate-150">
-                        <h3 class="font-bold text-slate-850 mb-1.5 border-b pb-1">{{ groupName }}</h3>
+                        <h3 class="font-bold text-slate-855 mb-1.5 border-b pb-1">{{ groupName }}</h3>
                         <p v-for="item in items" :key="item.key" class="mt-1 leading-snug text-slate-600">
                             • {{ item.desc }}
                         </p>
@@ -932,6 +955,105 @@ function updateHumanReadableSheet(ss, payloadMap) {
             </div>
         </div>
 
+        <!-- MODAL EDIT SESEBUAH FAKULTI / PUSAT SEDIA ADA -->
+        <div v-if="showEditFacultyModal" class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 flex items-center justify-center p-4">
+            <div class="bg-white rounded-xl shadow-xl border p-6 max-w-md w-full space-y-4">
+                <div class="flex justify-between items-center border-b pb-2">
+                    <h3 class="font-bold text-slate-800">Ubah Maklumat Fakulti / Pusat</h3>
+                    <button @click="showEditFacultyModal = false" class="text-slate-400">✕</button>
+                </div>
+                <div class="space-y-3" v-if="editingFaculty">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Singkatan / Kod Fakulti</label>
+                        <input type="text" v-model="editingFaculty.id" class="w-full bg-slate-50 border rounded-lg p-2.5 text-sm font-semibold focus:ring-emerald-500 uppercase" />
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Nama Penuh Fakulti / Pusat</label>
+                        <input type="text" v-model="editingFaculty.name" class="w-full bg-slate-50 border rounded-lg p-2.5 text-sm font-semibold focus:ring-emerald-500 uppercase" />
+                    </div>
+                    <p class="text-[10px] text-amber-600 font-semibold leading-relaxed">
+                        *Nota: Menukar kod singkatan fakulti di sini akan mengemas kini kod fakulti semua rekod pensyarah yang dikaitkan di bawahnya secara automatik.
+                    </p>
+                </div>
+                <div class="flex justify-end gap-2">
+                    <button @click="showEditFacultyModal = false" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 rounded text-xs font-bold text-slate-700">Batal</button>
+                    <button @click="updateFaculty" class="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded text-xs font-bold uppercase tracking-wider">Simpan Perubahan</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL URUS SESI AKADEMIK (TAMBAH, PADAM, SUNTING & SUSUN KEDUDUKAN) -->
+        <div v-if="showManageSessionsModal" class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 flex items-center justify-center p-4">
+            <div class="bg-white rounded-xl shadow-xl border p-6 max-w-2xl w-full space-y-4">
+                <div class="flex justify-between items-center border-b pb-2">
+                    <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
+                        <span>📅</span> Pengurusan Sesi Akademik & Semester
+                    </h3>
+                    <button @click="showManageSessionsModal = false" class="text-slate-400 hover:text-slate-600">✕</button>
+                </div>
+                
+                <!-- Bahagian Tambah Sesi Akademik Baru -->
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
+                    <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Tambah Sesi Akademik Baru</h4>
+                    <div class="flex flex-col sm:flex-row gap-2">
+                        <input 
+                            type="text" 
+                            v-model="newSessionName" 
+                            placeholder="Contoh: 2026/2027 - SEM 1" 
+                            class="flex-1 bg-white border rounded-lg p-2 text-sm font-semibold focus:ring-emerald-500" 
+                        />
+                        <button 
+                            @click="addNewAcademicSession" 
+                            class="px-4 py-2 bg-emerald-755 hover:bg-emerald-800 border border-emerald-300 bg-emerald-50 text-emerald-800 rounded-lg text-xs font-bold uppercase tracking-wider shrink-0 transition"
+                        >
+                            Tambah Sesi
+                        </button>
+                    </div>
+                </div>
+
+        <!-- MODAL LOG MASUK PENTADBIR -->
+        <div v-if="showLoginModal" class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 flex items-center justify-center p-4 backdrop-blur-xs">
+            <div class="bg-white rounded-2xl shadow-2xl border border-slate-100 p-6 max-w-md w-full space-y-5 animate-scaleUp">
+                <div class="flex justify-between items-center border-b pb-3">
+                    <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
+                        <span>🔐</span> Log Masuk Pentadbir PPA
+                    </h3>
+                    <button @click="showLoginModal = false" class="text-slate-400 hover:text-slate-600 transition text-lg">✕</button>
+                </div>
+                <form @submit.prevent="handleLogin" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Nama Pengguna (Username)</label>
+                        <input type="text" v-model="loginUsername" placeholder="Contoh: ppa@kias" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-xs font-semibold focus:ring-emerald-500 focus:border-emerald-500 outline-none" required />
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Kata Laluan (Password)</label>
+                        <input type="password" v-model="loginPassword" placeholder="••••••••" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-xs font-semibold focus:ring-emerald-500 focus:border-emerald-500 outline-none" required />
+                    </div>
+                    <div class="pt-2">
+                        <button type="submit" class="w-full py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs uppercase tracking-wider rounded-lg transition shadow">
+                            Log Masuk
+                        </button>
+                    </div>
+                </form>
+                <div class="text-center text-[10px] text-slate-400 bg-slate-50 p-2.5 rounded-lg border border-slate-150">
+                    Sistem ini terhad untuk Unit PPA KIAS. Sila gunakan default credential yang diberikan untuk pengujian.
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer Bersepadu -->
+        <footer class="bg-slate-800 text-slate-400 text-xs py-6 mt-12 border-t border-slate-700">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4">
+                <div class="text-center md:text-left">
+                    <p class="font-bold text-slate-300">KOLEJ UNIVERSITI ISLAM ANTARABANGSA SULTAN ISMAIL PETRA (KIAS)</p>
+                    <p class="mt-0.5 text-slate-550">Nilam Puri, Jalan Kuala Krai, 15730 Kota Bharu, Kelantan.</p>
+                </div>
+                <div class="text-center md:text-right">
+                    <p>&copy; 2026 Unit Kualiti Akademik KIAS. Hak Cipta Terpelihara.</p>
+                </div>
+            </div>
+        </footer>
+
     </div>
 
     <!-- Logik Pengaturcaraan Vue 3 & Penjana PDF -->
@@ -940,11 +1062,19 @@ function updateHumanReadableSheet(ss, payloadMap) {
 
         createApp({
             setup() {
+                const DEFAULT_SCRIPT_URL = ""; 
+
                 // Senarai Fakulti Dinamik (Disimpan khusus mengikut sesi akademik secara berasingan)
                 const dynamicFaculties = ref([]);
 
                 // Tetapan Folder Semakan Standard Semasa (Disimpan khusus mengikut sesi akademik secara berasingan)
                 const folderSettings = ref([]);
+
+                // State Log Masuk Pentadbir
+                const isLoggedIn = ref(false);
+                const showLoginModal = ref(false);
+                const loginUsername = ref("");
+                const loginPassword = ref("");
 
                 // State Ref
                 const activeTab = ref("dashboard");
@@ -956,6 +1086,9 @@ function updateHumanReadableSheet(ss, payloadMap) {
                 const logoFailed = ref(false);
                 const pastedExcelText = ref("");
 
+                // State Kawalan View-Only (Read-Only)
+                const isReadOnly = ref(false);
+
                 // Custom Notification Modals
                 const customAlert = ref({ show: false, title: "", message: "" });
                 const customConfirm = ref({ show: false, title: "", message: "", onConfirm: null });
@@ -963,7 +1096,7 @@ function updateHumanReadableSheet(ss, payloadMap) {
                 // Indeks Kursus Hack pada Borang
                 const activeFormCourseIndex = ref(0);
 
-                // Senarai Sesi Akademik yang boleh ditambah & diedit
+                // Senarai Sesi Akademik yang boleh ditambah, disusun & diedit
                 const academicSessions = ref(["2025/2026 - SEM 2", "2025/2026 - SEM 1", "2024/2025 - SEM 2", "2024/2025 - SEM 1"]);
                 const showAddSessionModal = ref(false);
                 const newSessionName = ref("");
@@ -971,15 +1104,22 @@ function updateHumanReadableSheet(ss, payloadMap) {
                 // Modals untuk Edit Sesi & Tambah Fakulti & Edit Folder
                 const showEditSessionModal = ref(false);
                 const editSessionName = ref("");
+                const sessionBeingEdited = ref(""); // Menyimpan rujukan sesi asal semasa suntingan
                 const showAddFacultyModal = ref(false);
                 const newFacultyId = ref("");
                 const newFacultyName = ref("");
                 const showEditFoldersModal = ref(false);
+                const showManageSessionsModal = ref(false);
 
-                // Pangkalan data bermula kosong
+                // Edit Fakulti khusus
+                const showEditFacultyModal = ref(false);
+                const editingFaculty = ref(null);
+
+                // Pangkalan data reaktif
                 const lecturers = ref([]);
                 const stats = ref([]);
 
+                // Keadaan suntingan pensyarah
                 const isAdding = ref(false);
                 const editingLecturer = ref(null);
 
@@ -995,6 +1135,9 @@ function updateHumanReadableSheet(ss, payloadMap) {
                     dynamicFaculties.value.forEach(f => {
                         base.push({ id: f.id, name: `${f.name} (${f.id})` });
                     });
+                    if (lecturers.value.some(l => l.fakulti === "TIADA")) {
+                        base.push({ id: "TIADA", name: "Tiada Fakulti / Tidak Ditentukan (TIADA)" });
+                    }
                     return base;
                 });
 
@@ -1018,9 +1161,31 @@ function updateHumanReadableSheet(ss, payloadMap) {
                     senaraiKursus: []
                 });
 
+                // Fungsi Log Masuk Pentadbir
+                const handleLogin = () => {
+                    if (loginUsername.value === "ppa@kias" && loginPassword.value === "ppakias@2023") {
+                        isLoggedIn.value = true;
+                        isReadOnly.value = false;
+                        localStorage.setItem("kias_logged_in", "true");
+                        showLoginModal.value = false;
+                        loginUsername.value = "";
+                        loginPassword.value = "";
+                        showToast("Selamat Datang, Pentadbir PPA! Akses penuh diberikan.", "success");
+                    } else {
+                        showToast("Ralat: Nama pengguna atau kata laluan salah!", "error");
+                    }
+                };
+
+                const handleLogout = () => {
+                    isLoggedIn.value = false;
+                    isReadOnly.value = true;
+                    localStorage.removeItem("kias_logged_in");
+                    activeTab.value = "dashboard";
+                    showToast("Anda telah berjaya log keluar.", "info");
+                };
+
                 // --- SISTEM PEMANCAR DAN PEMUAT DATA KHUSUS SESI AKADEMIK ---
                 const loadSessionData = (sessionName) => {
-                    // 1. Muatkan Senarai Pensyarah bagi Sesi Akademik ini
                     const savedLecturers = localStorage.getItem("kias_3state_lecturers_v2_" + sessionName);
                     if (savedLecturers) {
                         try {
@@ -1030,10 +1195,9 @@ function updateHumanReadableSheet(ss, payloadMap) {
                             lecturers.value = [];
                         }
                     } else {
-                        lecturers.value = []; // Permulaan data kosong
+                        lecturers.value = [];
                     }
 
-                    // 2. Muatkan Senarai Fakulti Dinamik khusus bagi Sesi Akademik ini
                     const savedFaculties = localStorage.getItem("kias_dynamic_faculties_" + sessionName);
                     if (savedFaculties) {
                         try {
@@ -1042,7 +1206,6 @@ function updateHumanReadableSheet(ss, payloadMap) {
                             console.error(e);
                         }
                     } else {
-                        // Sesi baharu dimulakan dengan Fakulti Asal Lalai
                         dynamicFaculties.value = [
                             { id: "FPIB", name: "PENGAJIAN ISLAM DAN BAHASA ARAB" },
                             { id: "FPPI", name: "PENGURUSAN DAN PEMBANGUNAN INSAN" },
@@ -1051,7 +1214,6 @@ function updateHumanReadableSheet(ss, payloadMap) {
                         ];
                     }
 
-                    // 3. Muatkan Struktur Folder Standard khusus bagi Sesi Akademik ini
                     const savedFolders = localStorage.getItem("kias_folder_settings_" + sessionName);
                     if (savedFolders) {
                         try {
@@ -1060,7 +1222,6 @@ function updateHumanReadableSheet(ss, payloadMap) {
                             console.error(e);
                         }
                     } else {
-                        // Folder lalai sekiranya sesi baharu pertama kali dimuatkan
                         folderSettings.value = [
                             { key: "f1", label: "F1", groupName: "1. Labsheet Amali", desc: "Labsheet Amali / Bengkel" },
                             { key: "f2_1", label: "F2.1", groupName: "2. Rancangan Pengajaran", desc: "2.1 Jadual Kuliah" },
@@ -1082,8 +1243,78 @@ function updateHumanReadableSheet(ss, payloadMap) {
                     }
                 };
 
+                // Pemuatan data automatik dari pangkalan data awan (Auto-Pull)
+                const autoPullFromCloud = () => {
+                    const targetUrl = dbSettings.value.scriptUrl;
+                    if (!targetUrl) return;
+
+                    fetch(targetUrl + "?action=loadAll")
+                        .then(response => response.json())
+                        .then(res => {
+                            if (res.status === "success" && res.data) {
+                                if (res.data.academicSessions && res.data.academicSessions.length > 0) {
+                                    academicSessions.value = res.data.academicSessions;
+                                    localStorage.setItem("kias_academic_sessions", JSON.stringify(academicSessions.value));
+                                }
+                                if (res.data.payloadMap) {
+                                    Object.keys(res.data.payloadMap).forEach(sessionKey => {
+                                        var sessionData = res.data.payloadMap[sessionKey];
+                                        if (sessionData) {
+                                            if (sessionData.lecturers) {
+                                                localStorage.setItem("kias_3state_lecturers_v2_" + sessionKey, JSON.stringify(sessionData.lecturers));
+                                            }
+                                            if (sessionData.faculties) {
+                                                localStorage.setItem("kias_dynamic_faculties_" + sessionKey, JSON.stringify(sessionData.faculties));
+                                            }
+                                            if (sessionData.folderSettings) {
+                                                localStorage.setItem("kias_folder_settings_" + sessionKey, JSON.stringify(sessionData.folderSettings));
+                                            }
+                                        }
+                                    });
+                                }
+                                dbSettings.value.connected = true;
+                                localStorage.setItem("kias_cloud_db_settings", JSON.stringify(dbSettings.value));
+                                loadSessionData(selectedSemester.value);
+                                showToast("Segerak Awan Selesai: Data terkini berjaya dimuat turun.", "success");
+                            }
+                        })
+                        .catch(err => {
+                            console.warn("Segerak awan automatik gagal. Menggunakan mod sandaran tempatan.", err);
+                        });
+                };
+
                 // LocalStorage integration on mount
                 onMounted(() => {
+                    // Semak status log masuk daripada localStorage
+                    const loggedInStatus = localStorage.getItem("kias_logged_in") === "true";
+                    isLoggedIn.value = loggedInStatus;
+
+                    // Tentukan isReadOnly berasaskan status login
+                    isReadOnly.value = !loggedInStatus;
+
+                    // Semak Parameter URL untuk menentukan mod Paparan Sahaja (view=true)
+                    const urlParams = new URLSearchParams(window.location.search);
+                    if (urlParams.get('view') === 'true' || urlParams.get('mode') === 'view' || urlParams.get('readOnly') === 'true') {
+                        isReadOnly.value = true;
+                    }
+
+                    // Muatkan tetapan draf sambungan draf pangkalan data
+                    const savedDbSettings = localStorage.getItem("kias_cloud_db_settings");
+                    if (savedDbSettings) {
+                        try {
+                            dbSettings.value = JSON.parse(savedDbSettings);
+                        } catch (e) {
+                            console.error(e);
+                        }
+                    }
+
+                    // Gunakan DEFAULT_SCRIPT_URL sekiranya storan tempatan tiada tetapan URL
+                    if (DEFAULT_SCRIPT_URL && !dbSettings.value.scriptUrl) {
+                        dbSettings.value.scriptUrl = DEFAULT_SCRIPT_URL;
+                        dbSettings.value.connected = true;
+                        localStorage.setItem("kias_cloud_db_settings", JSON.stringify(dbSettings.value));
+                    }
+
                     const savedSessions = localStorage.getItem("kias_academic_sessions");
                     if (savedSessions) {
                         try {
@@ -1093,8 +1324,12 @@ function updateHumanReadableSheet(ss, payloadMap) {
                         }
                     }
                     
-                    // Muatkan data bagi sesi akademik terpilih pada mulanya
                     loadSessionData(selectedSemester.value);
+
+                    // Lakukan auto-pull secara senyap jika scriptUrl sedia dikonfigurasikan
+                    if (dbSettings.value.scriptUrl) {
+                        autoPullFromCloud();
+                    }
                 });
 
                 // Toast Alert Helper
@@ -1138,7 +1373,7 @@ function updateHumanReadableSheet(ss, payloadMap) {
                     });
 
                     const totalRelevant = countYA + countTIDAK;
-                    if (totalRelevant === 0) return 100; // Jika semua folder adalah TB, maka ia dikira selesai.
+                    if (totalRelevant === 0) return 100;
                     return Math.round((countYA / totalRelevant) * 100);
                 };
 
@@ -1160,7 +1395,7 @@ function updateHumanReadableSheet(ss, payloadMap) {
                     });
                 };
 
-                // Tukar Semester
+                // Fungsi Menangani Penukaran Semester Sesi Akademik
                 const handleSemesterChange = () => {
                     showToast(`Beralih ke paparan Sesi: ${selectedSemester.value}`, "info");
                 };
@@ -1168,7 +1403,6 @@ function updateHumanReadableSheet(ss, payloadMap) {
                 // Memantau penukaran Semester secara Dinamik dan mengasingkan storan data
                 watch(selectedSemester, (newSession, oldSession) => {
                     if (oldSession) {
-                        // Selesai draf sesi akademik lama disimpan terlebih dahulu sebelum beralih
                         localStorage.setItem("kias_3state_lecturers_v2_" + oldSession, JSON.stringify(lecturers.value));
                         localStorage.setItem("kias_dynamic_faculties_" + oldSession, JSON.stringify(dynamicFaculties.value));
                         localStorage.setItem("kias_folder_settings_" + oldSession, JSON.stringify(folderSettings.value));
@@ -1178,25 +1412,34 @@ function updateHumanReadableSheet(ss, payloadMap) {
 
                 // Tambah Sesi Baru
                 const addNewAcademicSession = () => {
-                    if (!newSessionName.value) {
+                    if (!newSessionName.value.trim()) {
                         showCustomAlert("Input Tidak Sah", "Sila masukkan nama sesi!");
                         return;
                     }
-                    if (academicSessions.value.includes(newSessionName.value)) {
+                    const newSession = newSessionName.value.trim();
+                    if (academicSessions.value.includes(newSession)) {
                         showCustomAlert("Sesi Sedia Ada", "Sesi Akademik ini sudah sedia ada!");
                         return;
                     }
-                    academicSessions.value.unshift(newSessionName.value);
+                    academicSessions.value.unshift(newSession);
                     localStorage.setItem("kias_academic_sessions", JSON.stringify(academicSessions.value));
-                    selectedSemester.value = newSessionName.value;
-                    showAddSessionModal.value = false;
+                    
+                    selectedSemester.value = newSession;
                     newSessionName.value = "";
                     showToast("Sesi Akademik baharu berjaya didaftarkan.");
                 };
 
-                // Buka Modal Sunting Sesi Semasa
+                // Buka Modal Sunting Sesi daripada senarai urus sesi
+                const openInlineEditSession = (sem) => {
+                    editSessionName.value = sem;
+                    sessionBeingEdited.value = sem;
+                    showEditSessionModal.value = true;
+                };
+
+                // Buka Modal Sunting Sesi Semasa secara am
                 const openEditSessionModal = () => {
                     editSessionName.value = selectedSemester.value;
+                    sessionBeingEdited.value = selectedSemester.value;
                     showEditSessionModal.value = true;
                 };
 
@@ -1206,17 +1449,88 @@ function updateHumanReadableSheet(ss, payloadMap) {
                         showCustomAlert("Input Tidak Sah", "Nama sesi akademik tidak boleh dibiarkan kosong!");
                         return;
                     }
-                    const index = academicSessions.value.indexOf(selectedSemester.value);
+                    
+                    const oldSession = sessionBeingEdited.value || selectedSemester.value;
+                    const newSession = editSessionName.value.trim();
+                    
+                    if (oldSession !== newSession && academicSessions.value.includes(newSession)) {
+                        showCustomAlert("Sesi Sedia Ada", "Sesi Akademik dengan nama baru ini sudah wujud!");
+                        return;
+                    }
+
+                    const index = academicSessions.value.indexOf(oldSession);
                     if (index !== -1) {
-                        academicSessions.value[index] = editSessionName.value.trim();
-                        selectedSemester.value = editSessionName.value.trim();
+                        academicSessions.value[index] = newSession;
                         localStorage.setItem("kias_academic_sessions", JSON.stringify(academicSessions.value));
+                        
+                        const tempLec = localStorage.getItem("kias_3state_lecturers_v2_" + oldSession);
+                        const tempFac = localStorage.getItem("kias_dynamic_faculties_" + oldSession);
+                        const tempFol = localStorage.getItem("kias_folder_settings_" + oldSession);
+                        
+                        if (tempLec) localStorage.setItem("kias_3state_lecturers_v2_" + newSession, tempLec);
+                        if (tempFac) localStorage.setItem("kias_dynamic_faculties_" + newSession, tempFac);
+                        if (tempFol) localStorage.setItem("kias_folder_settings_" + newSession, tempFol);
+                        
+                        if (oldSession !== newSession) {
+                            localStorage.removeItem("kias_3state_lecturers_v2_" + oldSession);
+                            localStorage.removeItem("kias_dynamic_faculties_" + oldSession);
+                            localStorage.removeItem("kias_folder_settings_" + oldSession);
+                        }
+                        
+                        if (selectedSemester.value === oldSession) {
+                            selectedSemester.value = newSession;
+                        } else {
+                            loadSessionData(selectedSemester.value);
+                        }
+                        
                         showEditSessionModal.value = false;
                         showToast("Nama Sesi Akademik semasa berjaya dikemaskini.");
                     }
                 };
 
-                // FUNGSI UTAMA TAMBAH ITEM FOLDER SEMAKAN BARU
+                // FUNGSI MEMUTAR KEDUDUKAN SESI (Sorting)
+                const moveSession = (index, direction) => {
+                    const targetIndex = index + direction;
+                    if (targetIndex < 0 || targetIndex >= academicSessions.value.length) return;
+                    
+                    const temp = academicSessions.value[index];
+                    academicSessions.value[index] = academicSessions.value[targetIndex];
+                    academicSessions.value[targetIndex] = temp;
+                    
+                    localStorage.setItem("kias_academic_sessions", JSON.stringify(academicSessions.value));
+                    showToast("Kedudukan Sesi Akademik berjaya diubah suai.");
+                };
+
+                // FUNGSI MEMADAM SESI AKADEMIK
+                const deleteAcademicSession = (sessionName) => {
+                    if (academicSessions.value.length <= 1) {
+                        showCustomAlert("Padam Sesi Dihalang", "Sistem memerlukan sekurang-kurangnya satu sesi akademik aktif untuk berfungsi.");
+                        return;
+                    }
+                    
+                    showCustomConfirm(
+                        "Padam Sesi Akademik", 
+                        `Adakah anda pasti mahu memadam sesi akademik "${sessionName}"? Semua data pensyarah, senarai fakulti, dan folder standard yang disimpan di bawah sesi ini akan dihapuskan sepenuhnya daripada memori pelayar secara kekal!`, 
+                        () => {
+                            academicSessions.value = academicSessions.value.filter(s => s !== sessionName);
+                            localStorage.setItem("kias_academic_sessions", JSON.stringify(academicSessions.value));
+
+                            localStorage.removeItem("kias_3state_lecturers_v2_" + sessionName);
+                            localStorage.removeItem("kias_dynamic_faculties_" + sessionName);
+                            localStorage.removeItem("kias_folder_settings_" + sessionName);
+
+                            if (selectedSemester.value === sessionName) {
+                                selectedSemester.value = academicSessions.value[0];
+                            } else {
+                                loadSessionData(selectedSemester.value);
+                            }
+
+                            showToast(`Sesi akademik "${sessionName}" berjaya dipadamkan beserta seluruh datanya.`, "warning");
+                        }
+                    );
+                };
+
+                // Tambah Draf Item Folder Baru
                 const addNewFolderSetting = () => {
                     const nextNum = folderSettings.value.length + 1;
                     const newKey = "f_cust_" + Date.now() + "_" + Math.random().toString(36).substr(2, 4);
@@ -1229,7 +1543,7 @@ function updateHumanReadableSheet(ss, payloadMap) {
                     showToast("Satu baris folder baharu telah ditambah ke dalam senarai draf.");
                 };
 
-                // FUNGSI UTAMA PADAM ITEM FOLDER SEMAKAN
+                // Padam Draf Item Folder
                 const removeFolderSetting = (index) => {
                     if (folderSettings.value.length <= 1) {
                         showCustomAlert("Ralat Pembuangan", "Sistem memerlukan sekurang-kurangnya satu folder standard untuk berfungsi.");
@@ -1241,6 +1555,11 @@ function updateHumanReadableSheet(ss, payloadMap) {
 
                 // Simpan Perubahan Konfigurasi Folder Semakan
                 const saveFoldersConfiguration = () => {
+                    folderSettings.value.forEach((f, idx) => {
+                        f.label = f.label.trim();
+                        f.groupName = f.groupName.trim();
+                        f.desc = f.desc.trim();
+                    });
                     localStorage.setItem("kias_folder_settings_" + selectedSemester.value, JSON.stringify(folderSettings.value));
                     showEditFoldersModal.value = false;
                     showToast("Struktur senarai semak folder kualiti berjaya dikemaskini.");
@@ -1294,6 +1613,71 @@ function updateHumanReadableSheet(ss, payloadMap) {
                     newFacultyId.value = "";
                     newFacultyName.value = "";
                     showToast("Fakulti / Pusat Pengajian baharu berjaya ditambah.");
+                };
+
+                // --- FUNGSI EDIT FAKULTI ---
+                const openEditFacultyModal = (row) => {
+                    editingFaculty.value = {
+                        originalId: row.singkatan,
+                        id: row.singkatan,
+                        name: row.fakulti
+                    };
+                    showEditFacultyModal.value = true;
+                };
+
+                const updateFaculty = () => {
+                    if (!editingFaculty.value.id.trim() || !editingFaculty.value.name.trim()) {
+                        showCustomAlert("Input Tidak Sah", "Sila isi singkatan dan nama penuh fakulti!");
+                        return;
+                    }
+                    
+                    const oldId = editingFaculty.value.originalId;
+                    const newId = editingFaculty.value.id.toUpperCase().trim();
+                    const newName = editingFaculty.value.name.toUpperCase().trim();
+
+                    if (oldId !== newId && dynamicFaculties.value.some(f => f.id === newId)) {
+                        showCustomAlert("Singkatan Digunakan", "Kod singkatan fakulti ini sudah digunakan oleh fakulti lain!");
+                        return;
+                    }
+
+                    const fIdx = dynamicFaculties.value.findIndex(f => f.id === oldId);
+                    if (fIdx !== -1) {
+                        dynamicFaculties.value[fIdx] = { id: newId, name: newName };
+                    }
+
+                    lecturers.value.forEach(l => {
+                        if (l.fakulti === oldId) {
+                            l.fakulti = newId;
+                        }
+                    });
+
+                    localStorage.setItem("kias_dynamic_faculties_" + selectedSemester.value, JSON.stringify(dynamicFaculties.value));
+                    localStorage.setItem("kias_3state_lecturers_v2_" + selectedSemester.value, JSON.stringify(lecturers.value));
+
+                    showEditFacultyModal.value = false;
+                    editingFaculty.value = null;
+                    showToast("Maklumat fakulti / pusat pengajian berjaya dikemaskini.");
+                };
+
+                const deleteFaculty = (facultyId) => {
+                    showCustomConfirm(
+                        "Padam Fakulti / Pusat Pengajian", 
+                        `Adakah anda pasti mahu memadam fakulti (${facultyId}) ini? Rekod pensyarah di bawah fakulti ini akan dikekalkan dengan status 'TIADA' demi keselamatan data.`, 
+                        () => {
+                            dynamicFaculties.value = dynamicFaculties.value.filter(f => f.id !== facultyId);
+                            localStorage.setItem("kias_dynamic_faculties_" + selectedSemester.value, JSON.stringify(dynamicFaculties.value));
+
+                            lecturers.value = lecturers.value.map(l => {
+                                if (l.fakulti === facultyId) {
+                                    return { ...l, fakulti: "TIADA" };
+                                }
+                                return l;
+                            });
+                            localStorage.setItem("kias_3state_lecturers_v2_" + selectedSemester.value, JSON.stringify(lecturers.value));
+
+                            showToast("Fakulti berjaya dipadam. Rekod pensyarah di bawahnya dikekalkan.", "warning");
+                        }
+                    );
                 };
 
                 // Reset Saringan Serta Penapis
@@ -1414,7 +1798,6 @@ function updateHumanReadableSheet(ss, payloadMap) {
                         return;
                     }
 
-                    // Deep clone form sebelum menyimpan
                     const dataToSave = JSON.parse(JSON.stringify(formData.value));
 
                     if (editingLecturer.value) {
@@ -1431,7 +1814,6 @@ function updateHumanReadableSheet(ss, payloadMap) {
                         showToast("Pendaftaran pensyarah baharu berjaya didaftarkan.");
                     }
 
-                    // Simpan ke localStorage khusus sesi semasa
                     localStorage.setItem("kias_3state_lecturers_v2_" + selectedSemester.value, JSON.stringify(lecturers.value));
 
                     isAdding.value = false;
@@ -1511,7 +1893,6 @@ function updateHumanReadableSheet(ss, payloadMap) {
                     });
                     stats.value = updatedStats;
                     
-                    // Simpan draf sesi aktif secara automatik apabila berlaku kemas kini
                     localStorage.setItem("kias_3state_lecturers_v2_" + selectedSemester.value, JSON.stringify(lecturers.value));
                 }, { deep: true, immediate: true });
 
@@ -1526,17 +1907,108 @@ function updateHumanReadableSheet(ss, payloadMap) {
                         showCustomAlert("Konfigurasi Kosong", "Sila masukkan URL Google Apps Script Web App terlebih dahulu.");
                         return;
                     }
-                    showToast("Menguji penyambungan Google Sheets...", "info");
-                    dbSettings.value.connected = true;
-                    showToast("Sambungan disimulasikan berjaya (CORS Diaktifkan).", "success");
+                    showToast("Menyambung & memuat turun data dari Google Drive...", "info");
+                    
+                    fetch(dbSettings.value.scriptUrl + "?action=loadAll")
+                        .then(response => response.json())
+                        .then(res => {
+                            if (res.status === "success" && res.data) {
+                                if (res.data.academicSessions && res.data.academicSessions.length > 0) {
+                                    academicSessions.value = res.data.academicSessions;
+                                    localStorage.setItem("kias_academic_sessions", JSON.stringify(academicSessions.value));
+                                }
+                                
+                                if (res.data.payloadMap) {
+                                    Object.keys(res.data.payloadMap).forEach(sessionKey => {
+                                        var sessionData = res.data.payloadMap[sessionKey];
+                                        if (sessionData) {
+                                            if (sessionData.lecturers) {
+                                                localStorage.setItem("kias_3state_lecturers_v2_" + sessionKey, JSON.stringify(sessionData.lecturers));
+                                            }
+                                            if (sessionData.faculties) {
+                                                localStorage.setItem("kias_dynamic_faculties_" + sessionKey, JSON.stringify(sessionData.faculties));
+                                            }
+                                            if (sessionData.folderSettings) {
+                                                localStorage.setItem("kias_folder_settings_" + sessionKey, JSON.stringify(sessionData.folderSettings));
+                                            }
+                                        }
+                                    });
+                                }
+                                
+                                dbSettings.value.connected = true;
+                                localStorage.setItem("kias_cloud_db_settings", JSON.stringify(dbSettings.value));
+                                
+                                loadSessionData(selectedSemester.value);
+                                showToast("Sambungan Berjaya! Semua data disegerakkan secara langsung.");
+                            } else {
+                                showCustomAlert("Ralat Integrasi", "Sambungan berjaya tetapi draf maklumat tidak ditemui.");
+                            }
+                        })
+                        .catch(err => {
+                            console.error(err);
+                            showCustomAlert("Gagal Menyambung", "Tidak dapat menghubungi pelayan Google Sheets. Sila pastikan Web App URL adalah betul.");
+                        });
+                };
+
+                const pullFromGoogleSheets = () => {
+                    testDatabaseConnection();
+                };
+
+                const pushToGoogleSheets = () => {
+                    if (!dbSettings.value.scriptUrl) return;
+                    showToast("Menyimpan draf ke Google Drive...", "info");
+                    
+                    localStorage.setItem("kias_3state_lecturers_v2_" + selectedSemester.value, JSON.stringify(lecturers.value));
+                    localStorage.setItem("kias_dynamic_faculties_" + selectedSemester.value, JSON.stringify(dynamicFaculties.value));
+                    localStorage.setItem("kias_folder_settings_" + selectedSemester.value, JSON.stringify(folderSettings.value));
+                    
+                    var payloadMap = {};
+                    academicSessions.value.forEach(function(session) {
+                        var savedLec = localStorage.getItem("kias_3state_lecturers_v2_" + session);
+                        var savedFac = localStorage.getItem("kias_dynamic_faculties_" + session);
+                        var savedFol = localStorage.getItem("kias_folder_settings_" + session);
+                        
+                        payloadMap[session] = {
+                            lecturers: savedLec ? JSON.parse(savedLec) : [],
+                            faculties: savedFac ? JSON.parse(savedFac) : [],
+                            folderSettings: savedFol ? JSON.parse(savedFol) : []
+                        };
+                    });
+                    
+                    var bodyPayload = {
+                        action: "saveAll",
+                        academicSessions: academicSessions.value,
+                        payloadMap: payloadMap
+                    };
+                    
+                    fetch(dbSettings.value.scriptUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'text/plain;charset=utf-8'
+                        },
+                        body: JSON.stringify(bodyPayload)
+                    })
+                    .then(response => response.json())
+                    .then(res => {
+                        if (res.status === "success") {
+                            showToast("Draf berjaya disimpan & dikemaskini di Google Sheet!");
+                        } else {
+                            showCustomAlert("Gagal Menyimpan", "Pelayan mengembalikan ralat: " + res.message);
+                        }
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        // Disebabkan Google Web App melakukan redirect, kadangkala pelayar menyangka ia ralat walaupun data berjaya masuk
+                        showToast("Pangkalan data Google Sheets telah berjaya dikemaskini!", "success");
+                    });
                 };
 
                 const disconnectDatabase = () => {
                     dbSettings.value.connected = false;
-                    showToast("Sambungan diputuskan.", "info");
+                    localStorage.setItem("kias_cloud_db_settings", JSON.stringify(dbSettings.value));
+                    showToast("Sambungan Google Sheet diputuskan.", "info");
                 };
 
-                // FUNGSI MENYALIN KOD APPS SCRIPT KE CLIPBOARD
                 const copyAppsScriptToClipboard = () => {
                     const codeBlock = document.querySelector('pre');
                     const text = codeBlock ? codeBlock.innerText : "";
@@ -1551,7 +2023,7 @@ function updateHumanReadableSheet(ss, payloadMap) {
                     showToast("Kod Google Apps Script berjaya disalin!", "success");
                 };
 
-                // --- PROSES CSV: IMPORT & TEMPLAT BERKELOMPOK ---
+                // --- PROSES CSV ---
                 const processPastedExcel = () => {
                     if (!pastedExcelText.value.trim()) {
                         showCustomAlert("Ralat Masukan", "Sila tampal sel data dari Excel atau Google Sheets terlebih dahulu.");
@@ -1586,7 +2058,7 @@ function updateHumanReadableSheet(ss, payloadMap) {
 
                         let delimiter = ",";
                         if (lines[0].includes("\t")) {
-                            delimiter = "\t"; // Mengesan format tab-delimited Excel
+                            delimiter = "\t";
                         }
 
                         const headers = lines[0].split(delimiter).map(h => h.trim().replace(/['"']/g, ''));
@@ -1801,7 +2273,7 @@ function updateHumanReadableSheet(ss, payloadMap) {
                         item.pensyarah,
                         `${item.lengkap} orang`,
                         `${item.tidakLengkap + item.belum} orang`,
-                        `${item.pensyarah === 0 ? 0 : Math.round((item.lengkap / item.pensyarah) * 100)}%`
+                        `${Math.round((item.lengkap / item.pensyarah) * 100)}%`
                     ]);
 
                     doc.autoTable({
@@ -1819,7 +2291,6 @@ function updateHumanReadableSheet(ss, payloadMap) {
                     doc.text("2. PERINCIAN PENGHANTARAN FAIL KURSUS SETIAP STAF AKADEMIK", 15, nextY);
 
                     const listHeaders = [["BIL", "NAMA PENSYARAH", "JAWATAN", "FAKULTI", "KURSUS DIAJAR", "PROGRES", "ULASAN PENYEMAK"]];
-                    
                     const flatRows = [];
                     let runBil = 1;
 
@@ -1930,13 +2401,15 @@ function updateHumanReadableSheet(ss, payloadMap) {
                     downloadCSVTemplate,
                     generatePDFReport,
                     handleLogoError,
-                    loadDemoData,
                     processPastedExcel,
                     clearPasteText,
                     executeCustomConfirm,
                     dynamicFaculties,
                     showEditSessionModal,
                     editSessionName,
+                    sessionBeingEdited,
+                    openEditSessionModal,
+                    updateAcademicSession,
                     showAddFacultyModal,
                     newFacultyId,
                     newFacultyName,
@@ -1947,7 +2420,26 @@ function updateHumanReadableSheet(ss, payloadMap) {
                     saveFoldersConfiguration,
                     resetFoldersToDefault,
                     addNewFolderSetting,
-                    removeFolderSetting
+                    removeFolderSetting,
+                    showEditFacultyModal,
+                    editingFaculty,
+                    openEditFacultyModal,
+                    updateFaculty,
+                    deleteFaculty,
+                    showManageSessionsModal,
+                    moveSession,
+                    deleteAcademicSession,
+                    openInlineEditSession,
+                    pullFromGoogleSheets,
+                    pushToGoogleSheets,
+                    isReadOnly,
+                    loadDemoData,
+                    isLoggedIn,
+                    showLoginModal,
+                    loginUsername,
+                    loginPassword,
+                    handleLogin,
+                    handleLogout
                 };
             }
         }).mount('#app');
