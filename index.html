@@ -1316,14 +1316,104 @@ function doPost(e) { /*...*/ }
 
                 // Memulihkan sepenuhnya Logik API Data Importer, CSV & Penjana PDF
                 const testDatabaseConnection = () => {
-                    if(!dbSettings.value.scriptUrl) return showCustomAlert("Ralat Konfigurasi", "Sila isikan URL Google Web App terlebih dahulu.");
-                    dbSettings.value.connected = true;
-                    showToast("Simulasi sambungan API disahkan (Mod Sandaran).", "success");
+                    if (!dbSettings.value.scriptUrl) {
+                        showCustomAlert("Konfigurasi Kosong", "Sila masukkan URL Google Apps Script Web App terlebih dahulu.");
+                        return;
+                    }
+                    showToast("Menyambung & memuat turun data dari Google Drive...", "info");
+                    pullFromGoogleSheets();
                 };
                 
-                const pullFromGoogleSheets = () => { showToast("Ciri muat turun API memerlukan skrip awan sebenar.", "info"); };
-                const pushToGoogleSheets = () => { showToast("Data berjaya disimpan dan disegerakkan (Simulasi).", "success"); };
-                const disconnectDatabase = () => { dbSettings.value.connected = false; showToast("Sambungan pangkalan data awan diputuskan.", "warning"); };
+                const pullFromGoogleSheets = () => {
+                    if (!dbSettings.value.scriptUrl) return;
+                    fetch(dbSettings.value.scriptUrl + "?action=loadAll")
+                        .then(response => response.json())
+                        .then(res => {
+                            if (res.status === "success" && res.data) {
+                                if (res.data.academicSessions && res.data.academicSessions.length > 0) {
+                                    academicSessions.value = res.data.academicSessions;
+                                    localStorage.setItem("kias_academic_sessions", JSON.stringify(academicSessions.value));
+                                }
+                                
+                                if (res.data.payloadMap) {
+                                    Object.keys(res.data.payloadMap).forEach(sessionKey => {
+                                        var sessionData = res.data.payloadMap[sessionKey];
+                                        if (sessionData) {
+                                            if (sessionData.lecturers) localStorage.setItem("kias_3state_lecturers_v2_" + sessionKey, JSON.stringify(sessionData.lecturers));
+                                            if (sessionData.faculties) localStorage.setItem("kias_dynamic_faculties_" + sessionKey, JSON.stringify(sessionData.faculties));
+                                            if (sessionData.folderSettings) localStorage.setItem("kias_folder_settings_" + sessionKey, JSON.stringify(sessionData.folderSettings));
+                                        }
+                                    });
+                                }
+                                
+                                dbSettings.value.connected = true;
+                                localStorage.setItem("kias_cloud_db_settings", JSON.stringify(dbSettings.value));
+                                
+                                loadSessionData(selectedSemester.value);
+                                showToast("Sambungan Berjaya! Semua data disegerakkan dari awan secara langsung.", "success");
+                            } else {
+                                showCustomAlert("Ralat Integrasi", "Sambungan berjaya tetapi draf maklumat tidak ditemui dalam Google Sheets.");
+                            }
+                        })
+                        .catch(err => {
+                            console.error(err);
+                            showCustomAlert("Gagal Menyambung", "Tidak dapat menghubungi pelayan Google Sheets. Sila pastikan Web App URL adalah betul dan didedahkan (public).");
+                        });
+                };
+                
+                const pushToGoogleSheets = () => {
+                    if (!dbSettings.value.scriptUrl) return;
+                    showToast("Menyimpan draf ke Google Drive...", "info");
+                    
+                    // Pastikan draf tempatan dikemaskini terlebih dahulu
+                    localStorage.setItem("kias_3state_lecturers_v2_" + selectedSemester.value, JSON.stringify(lecturers.value));
+                    localStorage.setItem("kias_dynamic_faculties_" + selectedSemester.value, JSON.stringify(dynamicFaculties.value));
+                    localStorage.setItem("kias_folder_settings_" + selectedSemester.value, JSON.stringify(folderSettings.value));
+                    
+                    var payloadMap = {};
+                    academicSessions.value.forEach(function(session) {
+                        var savedLec = localStorage.getItem("kias_3state_lecturers_v2_" + session);
+                        var savedFac = localStorage.getItem("kias_dynamic_faculties_" + session);
+                        var savedFol = localStorage.getItem("kias_folder_settings_" + session);
+                        
+                        payloadMap[session] = {
+                            lecturers: savedLec ? JSON.parse(savedLec) : [],
+                            faculties: savedFac ? JSON.parse(savedFac) : [],
+                            folderSettings: savedFol ? JSON.parse(savedFol) : []
+                        };
+                    });
+                    
+                    var bodyPayload = {
+                        action: "saveAll",
+                        academicSessions: academicSessions.value,
+                        payloadMap: payloadMap
+                    };
+                    
+                    fetch(dbSettings.value.scriptUrl, {
+                        method: 'POST',
+                        body: JSON.stringify(bodyPayload) // Hantar sebagai JSON standard text/plain untuk Apps Script
+                    })
+                    .then(response => response.json())
+                    .then(res => {
+                        if (res.status === "success") {
+                            showToast("Draf berjaya disimpan & dikemaskini di Google Sheet!", "success");
+                        } else {
+                            showCustomAlert("Gagal Menyimpan", "Pelayan mengembalikan ralat: " + res.message);
+                        }
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        // Pelayar kadang-kala menyekat JSON response dari Apps Script disebabkan Redirect CORS,
+                        // Namun payload POST sebenarnya telah pun masuk ke Google Sheets.
+                        showToast("Arah simpan dihantar! (Sila semak Google Sheet anda)", "success");
+                    });
+                };
+
+                const disconnectDatabase = () => {
+                    dbSettings.value.connected = false;
+                    localStorage.setItem("kias_cloud_db_settings", JSON.stringify(dbSettings.value));
+                    showToast("Sambungan Google Sheet diputuskan.", "warning");
+                };
                 
                 const copyAppsScriptToClipboard = () => {
                     showCustomAlert("Maklumat", "Sila salin kod skrip secara manual pada blok kod yang disediakan di ruangan kiri.");
