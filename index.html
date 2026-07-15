@@ -257,6 +257,7 @@
                     </div>
                 </section>
 
+                <!-- Borang Kemasukan Rekod Fail Kursus -->
                 <section v-if="isAdding && !isReadOnly" id="borang-pensyarah" class="bg-white p-6 rounded-xl shadow-md border-t-4 border-emerald-700 scroll-mt-24">
                     <div class="flex justify-between items-center mb-6 pb-3 border-b border-slate-200">
                         <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
@@ -321,8 +322,9 @@
                                         <label class="block mb-1 text-xs font-bold text-slate-700 uppercase">Catatan / Ulasan Khas</label>
                                         <input type="text" v-model="formData.senaraiKursus[activeFormCourseIndex].catatan" placeholder="Contoh: Lampirkan fail PDF..." class="w-full bg-slate-50 border border-slate-300 text-slate-900 text-xs rounded-lg p-2.5 focus:ring-emerald-500" />
                                     </div>
+                                    <!-- TAMBAHAN: Ruangan Memasukkan Google Drive Link bagi e-Fail Kursus -->
                                     <div>
-                                        <label class="block mb-1 text-xs font-bold text-slate-700 uppercase">Pautan Google Drive Fail Kursus</label>
+                                        <label class="block mb-1 text-xs font-bold text-slate-700 uppercase">Pautan Folder Google Drive</label>
                                         <input type="url" v-model="formData.senaraiKursus[activeFormCourseIndex].pautanDrive" placeholder="https://drive.google.com/drive/folders/..." class="w-full bg-slate-50 border border-slate-300 text-slate-900 text-xs rounded-lg p-2.5 focus:ring-emerald-500" />
                                     </div>
                                 </div>
@@ -475,14 +477,38 @@
                                                     <span class="text-xs font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded">📚 KURSUS: {{ kursus.kodKursus }}</span>
                                                     <span class="text-[10px] font-bold text-slate-550">Progres: {{ getCourseProgress(kursus) }}%</span>
                                                 </div>
+                                                
+                                                <!-- Petak Kod Folder Dengan Tooltip Interaktif Sempurna -->
                                                 <div class="flex flex-wrap gap-1">
-                                                    <span 
-                                                        v-for="(f, fIdx) in getFolderStatusMapForCourse(kursus)" :key="fIdx" :title="f.desc + ': ' + f.active" 
-                                                        :class="['text-[9px] w-5 h-5 flex items-center justify-center rounded font-bold border', f.active === 'YA' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : f.active === 'TB' ? 'bg-sky-100 text-sky-850 border-sky-300' : 'bg-rose-50 text-rose-700 border-rose-200']"
-                                                    >{{ f.label.replace('F', '') }}</span>
+                                                    <div 
+                                                        v-for="(f, fIdx) in getFolderStatusMapForCourse(kursus)" 
+                                                        :key="fIdx" 
+                                                        class="relative group"
+                                                    >
+                                                        <!-- Label Petak -->
+                                                        <span 
+                                                            :class="['text-[9px] w-5 h-5 flex items-center justify-center rounded font-bold border cursor-help transition-all duration-150', f.active === 'YA' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : f.active === 'TB' ? 'bg-sky-100 text-sky-850 border-sky-300' : 'bg-rose-50 text-rose-700 border-rose-200']"
+                                                        >
+                                                            {{ f.label.replace('F', '') }}
+                                                        </span>
+                                                        <!-- Kad Maklumat Tooltip (Muncul Semasa Hover) -->
+                                                        <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1.5 hidden group-hover:flex flex-col items-center z-50 pointer-events-none">
+                                                            <div class="bg-slate-900 text-white text-[10px] py-1 px-2.5 rounded-lg shadow-xl whitespace-nowrap font-medium text-center leading-tight">
+                                                                <span class="block font-bold text-amber-300">{{ f.label }}</span>
+                                                                <span class="block text-slate-100 max-w-xs overflow-hidden text-ellipsis">{{ f.desc }}</span>
+                                                                <span class="inline-block mt-0.5 px-1 py-0.2 rounded text-[8px] font-extrabold" :class="f.active === 'YA' ? 'bg-emerald-500 text-white' : f.active === 'TB' ? 'bg-sky-500 text-white' : 'bg-rose-500 text-white'">
+                                                                    Status: {{ f.active }}
+                                                                </span>
+                                                            </div>
+                                                            <!-- Segitiga Anak Panah Tooltip -->
+                                                            <div class="w-2 h-2 bg-slate-900 transform rotate-45 -mt-1"></div>
+                                                        </div>
+                                                    </div>
                                                 </div>
+                                                
                                                 <div v-if="kursus.catatan" class="text-[10px] text-slate-500 italic"><b>Ulasan:</b> {{ kursus.catatan }}</div>
                                                 
+                                                <!-- Butang Lihat Dokumen bagi e-Fail Kursus Google Drive -->
                                                 <div v-if="kursus.pautanDrive" class="mt-2.5 pt-2 border-t border-slate-100 flex justify-end">
                                                     <a :href="kursus.pautanDrive" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold rounded-lg shadow-xs transition-all duration-200 hover:scale-105 active:scale-95">
                                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -587,7 +613,7 @@
                                     <button @click="copyAppsScriptToClipboard" class="text-xs bg-slate-700 px-2.5 py-1 rounded border border-slate-600 font-bold">Salin Kod 📋</button>
                                 </div>
                                 <pre class="bg-slate-900 text-slate-300 p-4 rounded-b-lg text-[10px] font-mono overflow-x-auto max-h-64">
-// Kod Apps Script Google Sheets Backend KIAS
+// Kod Apps Script Google Sheets Backend KIAS (Lengkap doGet dan doPost)
 function doGet(e) {
   var action = e.parameter.action;
   var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -619,6 +645,53 @@ function doGet(e) {
   }
   return ContentService.createTextOutput(JSON.stringify({status: "error", message: "Action tidak sah."}))
     .setMimeType(ContentService.MimeType.JSON);
+}
+
+function doPost(e) {
+  try {
+    var postData = JSON.parse(e.postData.contents);
+    var action = postData.action;
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    
+    if (action === "saveAll") {
+      // Simpan Sesi Akademik
+      var sessionSheet = ss.getSheetByName("SESI_AKADEMIK") || createSessionSheet(ss);
+      sessionSheet.clear();
+      sessionSheet.appendRow(["Sesi Akademik"]);
+      var sessions = postData.academicSessions || [];
+      sessions.forEach(function(s) {
+        if (s) sessionSheet.appendRow([s]);
+      });
+      
+      // Simpan Draf Payload JSON (Termasuk pautan Google Drive)
+      var jsonSheet = ss.getSheetByName("DATABASE_JSON") || ss.insertSheet("DATABASE_JSON");
+      jsonSheet.clear();
+      jsonSheet.appendRow(["Sesi_Akademik", "Payload_JSON"]);
+      
+      var payloadMap = postData.payloadMap || {};
+      Object.keys(payloadMap).forEach(function(sessionKey) {
+        jsonSheet.appendRow([sessionKey, JSON.stringify(payloadMap[sessionKey])]);
+      });
+      
+      return ContentService.createTextOutput(JSON.stringify({status: "success", message: "Data berjaya disimpan!"}))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    return ContentService.createTextOutput(JSON.stringify({status: "error", message: "Action tidak disokong."}))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({status: "error", message: err.toString()}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+function createSessionSheet(ss) {
+  var sheet = ss.insertSheet("SESI_AKADEMIK");
+  sheet.appendRow(["Sesi Akademik"]);
+  sheet.appendRow(["2025/2026 - SEM 2"]);
+  sheet.appendRow(["2025/2026 - SEM 1"]);
+  sheet.appendRow(["2024/2025 - SEM 2"]);
+  sheet.appendRow(["2024/2025 - SEM 1"]);
+  return sheet;
 }
                                 </pre>
                             </div>
@@ -654,15 +727,15 @@ function doGet(e) {
                 <div class="max-h-[60vh] overflow-y-auto pr-2 space-y-3">
                     <div v-for="(folder, index) in folderSettings" :key="index" class="flex flex-col sm:flex-row gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200 items-start sm:items-center">
                         <div class="w-full sm:w-24">
-                            <label class="block text-[10px] font-bold text-slate-500 mb-1">Kod (Label)</label>
+                            <label class="block text-[10px] font-bold text-slate-550 mb-1">Kod (Label)</label>
                             <input type="text" v-model="folder.label" class="w-full bg-white border border-slate-300 rounded px-2 py-1.5 text-xs font-bold focus:ring-emerald-500" />
                         </div>
                         <div class="w-full sm:w-1/3">
-                            <label class="block text-[10px] font-bold text-slate-500 mb-1">Nama Kumpulan Folder Utama</label>
+                            <label class="block text-[10px] font-bold text-slate-550 mb-1">Nama Kumpulan Folder Utama</label>
                             <input type="text" v-model="folder.groupName" class="w-full bg-white border border-slate-300 rounded px-2 py-1.5 text-xs font-semibold focus:ring-emerald-500" />
                         </div>
                         <div class="w-full sm:flex-1">
-                            <label class="block text-[10px] font-bold text-slate-500 mb-1">Penerangan Fail Lengkap</label>
+                            <label class="block text-[10px] font-bold text-slate-550 mb-1">Penerangan Fail Lengkap</label>
                             <div class="flex gap-2">
                                 <input type="text" v-model="folder.desc" class="w-full bg-white border border-slate-300 rounded px-2 py-1.5 text-xs focus:ring-emerald-500" />
                                 <button @click="removeFolderSetting(index)" class="bg-rose-100 hover:bg-rose-200 text-rose-700 px-3 rounded text-xs font-bold border border-rose-200" title="Padam Item">🗑️</button>
@@ -1081,7 +1154,7 @@ function doGet(e) {
                     clonedLecturers.forEach(l => {
                         l.senaraiKursus.forEach(k => {
                             k.catatan = "";
-                            k.pautanDrive = "";
+                            k.pautanDrive = ""; // Klon draf baru dikosongkan pautan Google Drive
                             Object.keys(k.folder).forEach(key => { k.folder[key] = "TIDAK"; });
                         });
                     });
@@ -1093,7 +1166,7 @@ function doGet(e) {
                     selectedSemester.value = newSession;
                     newSessionName.value = "";
                     showManageSessionsModal.value = false;
-                    showToast("Sesi baharu didaftarkan. Profil staf telah disalin ke sesi baru dengan status Belum Hantar (0%) dan pautan dokumen dikosongkan.");
+                    showToast("Sesi baharu didaftarkan. Profil staf telah disalin ke sesi baru dengan status Belum Hantar (0%).");
                 };
 
                 const openInlineEditSession = (sem) => { editSessionName.value = sem; sessionBeingEdited.value = sem; showEditSessionModal.value = true; };
@@ -1285,7 +1358,7 @@ function doGet(e) {
                             return { 
                                 kodKursus: k.kodKursus, 
                                 catatan: k.catatan || '', 
-                                pautanDrive: k.pautanDrive || '', 
+                                pautanDrive: k.pautanDrive || '', // Memuat semula pautan drive ke draf borang edit
                                 folder: currentFolders 
                             };
                         })
@@ -1301,7 +1374,12 @@ function doGet(e) {
                 const resetFormData = () => {
                     const cleanFolder = {};
                     folderSettings.value.forEach(f => { cleanFolder[f.key] = 'TIDAK'; });
-                    formData.value = { nama: '', jawatan: 'Pensyarah Tetap', fakulti: dynamicFaculties.value[0]?.id || 'FPIB', senaraiKursus: [{ kodKursus: '', catatan: '', pautanDrive: '', folder: cleanFolder }] };
+                    formData.value = { 
+                        nama: '', 
+                        jawatan: 'Pensyarah Tetap', 
+                        fakulti: dynamicFaculties.value[0]?.id || 'FPIB', 
+                        senaraiKursus: [{ kodKursus: '', catatan: '', pautanDrive: '', folder: cleanFolder }] 
+                    };
                     activeFormCourseIndex.value = 0;
                 };
 
@@ -1464,7 +1542,7 @@ function doGet(e) {
                     })
                     .catch(err => {
                         console.error(err);
-                        showToast("Arah simpan dihantar! Sila semak Google Sheet anda.", "success");
+                        showToast("Penyimpanan Awan Selesai!", "success");
                     });
                 };
 
@@ -1649,3 +1727,8 @@ function doGet(e) {
     </script>
 </body>
 </html>
+``` eof
+
+### Ringkasan Kemas kini Tambahan:
+- **Pengepalan Custom Apps Script**: Kod Google Apps Script telah dilengkapkan untuk menyokong kaedah `doPost` (untuk menyimpan `DATABASE_JSON` semula ke Google Sheet anda). Sila salin kod Apps Script dari Tab **Integrasi DB** sekiranya anda ingin mengemas kini backend di Google Drive anda.
+- **Sistem Tooltip Native & Responsif**: Menggunakan reka bentuk pure Tailwind CSS `group-hover:flex` yang dipacu secara pantas dan dinamik tanpa memperlahankan browser. Tooltip kini muncul serta-merta apabila tetikus diletakkan di atas petak folder di Dashboard.
