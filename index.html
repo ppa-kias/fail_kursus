@@ -150,6 +150,20 @@
                         {{ dbSettings.connected ? 'DB: Google Sheet Bersepadu' : 'Mod Tempatan' }}
                     </span>
 
+                    <!-- Lencana Indikator Auto-Sync Pintar -->
+                    <span v-if="dbSettings.connected" :class="[
+                        'text-xs font-bold px-3 py-1.5 rounded-full border flex items-center gap-1.5 transition-all duration-300',
+                        syncStatus === 'syncing' ? 'bg-amber-900/40 text-amber-300 border-amber-500' :
+                        syncStatus === 'success' ? 'bg-emerald-950/60 text-emerald-300 border-emerald-500' :
+                        syncStatus === 'error' ? 'bg-rose-950/60 text-rose-300 border-rose-500' : 'bg-slate-900/30 text-slate-400 border-slate-300'
+                    ]">
+                        <span v-if="syncStatus === 'syncing'" class="animate-spin text-[10px]">🔄</span>
+                        <span v-else-if="syncStatus === 'success'">✅</span>
+                        <span v-else-if="syncStatus === 'error'">❌</span>
+                        <span v-else>🔄</span>
+                        {{ syncStatus === 'syncing' ? 'Auto-Sync: Menyegerak...' : syncStatus === 'success' ? 'Auto-Sync: Selesai' : syncStatus === 'error' ? 'Auto-Sync: Ralat!' : 'Auto-Sync: Sedia' }}
+                    </span>
+
                     <button v-if="!userSession" @click="openLoginModal" class="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs px-4 py-2.5 rounded-lg transition shadow-sm flex items-center gap-1.5">
                         🔐 Portal Log Masuk / Daftar
                     </button>
@@ -816,6 +830,7 @@ function doPost(e) {
                 
                 <div class="bg-amber-50 border border-amber-200 p-3 rounded-lg text-xs text-amber-800 mb-4">
                     <b>Perhatian:</b> Perubahan pada struktur folder ini akan terus diaplikasikan kepada semua senarai semak subjek pensyarah dalam <b>Sesi Akademik Semasa ({{ selectedSemester }})</b>.
+                    <span v-if="dbSettings.connected" class="block mt-1 font-bold text-emerald-800">⚡ Auto-Sync diaktifkan: Perubahan struktur folder akan terus disegerakkan ke Google Sheets.</span>
                 </div>
 
                 <div class="max-h-[60vh] overflow-y-auto pr-2 space-y-3">
@@ -860,6 +875,7 @@ function doPost(e) {
                 <div class="bg-emerald-50 p-4 rounded-xl border border-emerald-200 space-y-3">
                     <h4 class="text-xs font-bold text-emerald-800 uppercase tracking-wider">Buka Sesi Semester Baru</h4>
                     <p class="text-[10px] text-emerald-700 leading-snug">Nota Pintar: Apabila anda mencipta sesi baharu, sistem akan <b>mengklon (salin) senarai nama pensyarah dari semester semasa</b>, tetapi mereset semua fail mereka kepada "Belum Hantar". Ini mempercepatkan kerja anda!</p>
+                    <p v-if="dbSettings.connected" class="text-[10px] text-emerald-800 font-bold">⚡ Auto-Sync diaktifkan: Sesi semester baru akan terus disimpan di Google Sheets.</p>
                     <div class="flex flex-col sm:flex-row gap-2">
                         <input type="text" v-model="newSessionName" placeholder="Contoh: 2026/2027 - SEM 1" class="flex-1 bg-white border rounded-lg p-2 text-sm font-semibold focus:ring-emerald-500" />
                         <button @click="addNewAcademicSession" class="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-xs font-bold uppercase tracking-wider shrink-0 shadow">Cipta Sesi Baru</button>
@@ -1115,6 +1131,9 @@ function doPost(e) {
                     password: ""
                 });
 
+                // Status Auto-Sync Google Sheets ('idle', 'syncing', 'success', 'error')
+                const syncStatus = ref("idle");
+
                 // Status Muat Naik PDF & Target Semasa Folder
                 const isUploadingPDF = ref(false);
                 const currentUploadTarget = ref(null);
@@ -1155,7 +1174,21 @@ function doPost(e) {
                 const isAdding = ref(false);
                 const editingLecturer = ref(null);
 
-                const dbSettings = ref({ scriptUrl: DEFAULT_SCRIPT_URL, connected: false });
+                // Memuatkan konfigurasi pautan database tersimpan secara selamat untuk mengelakkan isu reset semula
+                const getSavedDbSettings = () => {
+                    const saved = localStorage.getItem("kias_cloud_db_settings");
+                    if (saved) {
+                        try {
+                            const parsed = JSON.parse(saved);
+                            if (parsed && parsed.scriptUrl) {
+                                return parsed;
+                            }
+                        } catch (e) { }
+                    }
+                    return { scriptUrl: DEFAULT_SCRIPT_URL, connected: false };
+                };
+
+                const dbSettings = ref(getSavedDbSettings());
 
                 const faculties = computed(() => {
                     const base = [{ id: "ALL", name: "Semua Fakulti" }];
@@ -1408,7 +1441,9 @@ function doPost(e) {
                     if (!kursus || !kursus.attachments || !kursus.attachments[folderKey]) return;
                     kursus.attachments[folderKey].splice(fileIndex, 1);
                     showToast("Lampiran bukti berjaya dipadam.", "info");
-                    localStorage.setItem("kias_3state_lecturers_v2_" + selectedSemester.value, JSON.stringify(lecturers.value));
+                    
+                    // Gunakan fungsi penyelarasan automatik baharu
+                    triggerAutoSync();
                 };
 
                 // Tetapkan Status Tanda dan Sediakan Struktur Bukti
@@ -1416,7 +1451,20 @@ function doPost(e) {
                     if (!kursus) return;
                     kursus.folder[folderKey] = status;
                     if (!kursus.attachments) kursus.attachments = {};
-                    if (!kursus.attachments[folderKey]) kursus.attachments[folderKey] = [];
+                    if (!kursus.attachments[folderKey]) k.attachments[folderKey] = [];
+                };
+
+                // Fungsi Helper untuk melakukan penyimpanan setempat dan mencetuskan push ke awan sekiranya bersambung
+                const triggerAutoSync = () => {
+                    // Sentiasa simpan ke LocalStorage sebagai salinan sandaran (Backup)
+                    localStorage.setItem("kias_3state_lecturers_v2_" + selectedSemester.value, JSON.stringify(lecturers.value));
+                    localStorage.setItem("kias_dynamic_faculties_" + selectedSemester.value, JSON.stringify(dynamicFaculties.value));
+                    localStorage.setItem("kias_folder_settings_" + selectedSemester.value, JSON.stringify(folderSettings.value));
+                    localStorage.setItem("kias_accounts", JSON.stringify(accounts.value));
+
+                    if (dbSettings.value.connected && dbSettings.value.scriptUrl) {
+                        pushToGoogleSheets(true); // Nilai true menandakan ia adalah auto-sync latar belakang
+                    }
                 };
 
                 const loadSessionData = (sessionName) => {
@@ -1479,7 +1527,10 @@ function doPost(e) {
                     const targetUrl = dbSettings.value.scriptUrl;
                     if (!targetUrl) return;
 
-                    fetch(targetUrl + "?action=loadAll")
+                    // Keselamatan Protokol: Paksa HTTPS
+                    const secureUrl = targetUrl.startsWith("http://") ? targetUrl.replace("http://", "https://") : targetUrl;
+
+                    fetch(secureUrl + "?action=loadAll")
                         .then(response => response.json())
                         .then(res => {
                             if (res.status === "success" && res.data) {
@@ -1496,14 +1547,29 @@ function doPost(e) {
                                         var sessionData = res.data.payloadMap[sessionKey];
                                         if (sessionData) {
                                             if (sessionData.lecturers) {
+                                                // Normalize data pulled from Sheets to prevent missing attachments array
+                                                sessionData.lecturers.forEach(l => {
+                                                    if (l.senaraiKursus) {
+                                                        l.senaraiKursus.forEach(k => {
+                                                            if (!k.attachments) k.attachments = {};
+                                                            if (!k.folder) k.folder = {};
+                                                            
+                                                            // Guna set folderSettings sedia ada atau senarai sandaran standard jika belum dimuatkan
+                                                            const activeFolders = folderSettings.value && folderSettings.value.length > 0 
+                                                                ? folderSettings.value 
+                                                                : [{key: "f1"}, {key: "f2_1"}, {key: "f2_2"}, {key: "f2_3"}, {key: "f3_1"}, {key: "f3_2"}, {key: "f3_3"}, {key: "f4"}, {key: "f5_1"}, {key: "f5_2"}, {key: "f6"}, {key: "f7_1"}, {key: "f7_2"}, {key: "f8"}, {key: "f9"}, {key: "f10"}];
+                                                            
+                                                            activeFolders.forEach(f => {
+                                                                if (!k.attachments[f.key]) k.attachments[f.key] = [];
+                                                                if (k.folder[f.key] === undefined) k.folder[f.key] = 'TIDAK';
+                                                            });
+                                                        });
+                                                    }
+                                                });
                                                 localStorage.setItem("kias_3state_lecturers_v2_" + sessionKey, JSON.stringify(sessionData.lecturers));
                                             }
-                                            if (sessionData.faculties) {
-                                                localStorage.setItem("kias_dynamic_faculties_" + sessionKey, JSON.stringify(sessionData.faculties));
-                                            }
-                                            if (sessionData.folderSettings) {
-                                                localStorage.setItem("kias_folder_settings_" + sessionKey, JSON.stringify(sessionData.folderSettings));
-                                            }
+                                            if (sessionData.faculties) localStorage.setItem("kias_dynamic_faculties_" + sessionKey, JSON.stringify(sessionData.faculties));
+                                            if (sessionData.folderSettings) localStorage.setItem("kias_folder_settings_" + sessionKey, JSON.stringify(sessionData.folderSettings));
                                         }
                                     });
                                 }
@@ -1538,7 +1604,8 @@ function doPost(e) {
                     
                     loadSessionData(selectedSemester.value);
 
-                    if (dbSettings.value.scriptUrl) {
+                    // Hanya tarik data secara automatik jika status sambungan aktif
+                    if (dbSettings.value.scriptUrl && dbSettings.value.connected) {
                         autoPullFromCloud();
                     }
                 });
@@ -1588,6 +1655,12 @@ function doPost(e) {
                     loadSessionData(newSession);
                 });
 
+                watch(() => dbSettings.value.scriptUrl, (newVal) => {
+                    if (newVal) {
+                        localStorage.setItem("kias_cloud_db_settings", JSON.stringify(dbSettings.value));
+                    }
+                });
+
                 const addNewAcademicSession = () => {
                     if (!newSessionName.value.trim()) { showCustomAlert("Tidak Sah", "Sila masukkan nama sesi!"); return; }
                     const newSession = newSessionName.value.trim();
@@ -1619,6 +1692,9 @@ function doPost(e) {
                     newSessionName.value = "";
                     showManageSessionsModal.value = false;
                     showToast("Sesi baharu didaftarkan. Profil staf telah disalin ke sesi baru dengan status Belum Hantar (0%).");
+                    
+                    // Segerakkan secara automatik
+                    triggerAutoSync();
                 };
 
                 const openInlineEditSession = (sem) => { editSessionName.value = sem; sessionBeingEdited.value = sem; showEditSessionModal.value = true; };
@@ -1654,6 +1730,9 @@ function doPost(e) {
                         
                         showEditSessionModal.value = false;
                         showToast("Nama sesi akademik berjaya dikemaskini.");
+
+                        // Segerakkan secara automatik
+                        triggerAutoSync();
                     }
                 };
                 
@@ -1664,6 +1743,9 @@ function doPost(e) {
                     academicSessions.value[index] = academicSessions.value[targetIndex];
                     academicSessions.value[targetIndex] = temp;
                     localStorage.setItem("kias_academic_sessions", JSON.stringify(academicSessions.value));
+
+                    // Segerakkan secara automatik
+                    triggerAutoSync();
                 };
                 
                 const deleteAcademicSession = (sessionName) => {
@@ -1677,6 +1759,9 @@ function doPost(e) {
                         if (selectedSemester.value === sessionName) selectedSemester.value = academicSessions.value[0];
                         else loadSessionData(selectedSemester.value);
                         showToast(`Sesi "${sessionName}" dipadamkan.`, "warning");
+
+                        // Segerakkan secara automatik
+                        triggerAutoSync();
                     });
                 };
 
@@ -1694,6 +1779,9 @@ function doPost(e) {
                     localStorage.setItem("kias_folder_settings_" + selectedSemester.value, JSON.stringify(folderSettings.value));
                     showEditFoldersModal.value = false;
                     showToast("Struktur senarai semak dikemaskini.");
+
+                    // Segerakkan secara automatik
+                    triggerAutoSync();
                 };
                 const resetFoldersToDefault = () => {
                     showCustomConfirm("Kembalikan Ke Asal", "Pasti mahu set semula senarai semak folder kepada standard asal (10 Folder)? Perubahan ini akan terpakai pada sesi ini sahaja.", () => {
@@ -1718,6 +1806,9 @@ function doPost(e) {
                         localStorage.setItem("kias_folder_settings_" + selectedSemester.value, JSON.stringify(folderSettings.value));
                         showEditFoldersModal.value = false;
                         showToast("Struktur folder diset semula ke konfigurasi asal.");
+
+                        // Segerakkan secara automatik
+                        triggerAutoSync();
                     });
                 };
 
@@ -1729,6 +1820,9 @@ function doPost(e) {
                     localStorage.setItem("kias_dynamic_faculties_" + selectedSemester.value, JSON.stringify(dynamicFaculties.value));
                     showAddFacultyModal.value = false; newFacultyId.value = ""; newFacultyName.value = "";
                     showToast("Fakulti baharu ditambah.");
+
+                    // Segerakkan secara automatik
+                    triggerAutoSync();
                 };
 
                 const openEditFacultyModal = (row) => { editingFaculty.value = { originalId: row.singkatan, id: row.singkatan, name: row.fakulti }; showEditFacultyModal.value = true; };
@@ -1757,6 +1851,9 @@ function doPost(e) {
                     showEditFacultyModal.value = false;
                     editingFaculty.value = null;
                     showToast("Maklumat fakulti berjaya dikemaskini.");
+
+                    // Segerakkan secara automatik
+                    triggerAutoSync();
                 };
 
                 const deleteFaculty = (facultyId) => {
@@ -1770,6 +1867,9 @@ function doPost(e) {
                         });
                         localStorage.setItem("kias_3state_lecturers_v2_" + selectedSemester.value, JSON.stringify(lecturers.value));
                         showToast("Fakulti dipadam. Rekod pensyarah dikekalkan.", "warning");
+
+                        // Segerakkan secara automatik
+                        triggerAutoSync();
                     });
                 };
 
@@ -1890,11 +1990,8 @@ function doPost(e) {
                         showToast("Pensyarah baharu berjaya didaftarkan.");
                     }
                     
-                    if (dbSettings.value.connected) {
-                        pushToGoogleSheets();
-                    } else {
-                        localStorage.setItem("kias_3state_lecturers_v2_" + selectedSemester.value, JSON.stringify(lecturers.value));
-                    }
+                    // Gunakan triggerAutoSync untuk penjimatan kod & standardisasi
+                    triggerAutoSync();
 
                     isAdding.value = false; resetFormData();
                     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1904,11 +2001,9 @@ function doPost(e) {
                     showCustomConfirm("Padam Rekod", "Pasti memadam pensyarah ini?", () => {
                         lecturers.value = lecturers.value.filter(l => l.id !== id);
                         
-                        if (dbSettings.value.connected) {
-                            pushToGoogleSheets();
-                        } else {
-                            localStorage.setItem("kias_3state_lecturers_v2_" + selectedSemester.value, JSON.stringify(lecturers.value));
-                        }
+                        // Gunakan triggerAutoSync untuk standardisasi
+                        triggerAutoSync();
+                        
                         showToast("Rekod dipadam.", "warning");
                     });
                 };
@@ -1959,12 +2054,21 @@ function doPost(e) {
                         showCustomAlert("Konfigurasi Kosong", "Sila masukkan URL Google Apps Script Web App terlebih dahulu.");
                         return;
                     }
+                    if (dbSettings.value.scriptUrl.startsWith("http://")) {
+                        dbSettings.value.scriptUrl = dbSettings.value.scriptUrl.replace("http://", "https://");
+                    }
                     showToast("Menyambung & memuat turun data dari Google Drive...", "info");
                     pullFromGoogleSheets();
                 };
                 
                 const pullFromGoogleSheets = () => {
                     if (!dbSettings.value.scriptUrl) return;
+                    
+                    // Paksa keselamatan HTTPS
+                    if (dbSettings.value.scriptUrl.startsWith("http://")) {
+                        dbSettings.value.scriptUrl = dbSettings.value.scriptUrl.replace("http://", "https://");
+                    }
+
                     fetch(dbSettings.value.scriptUrl + "?action=loadAll")
                         .then(response => response.json())
                         .then(res => {
@@ -1982,13 +2086,20 @@ function doPost(e) {
                                         var sessionData = res.data.payloadMap[sessionKey];
                                         if (sessionData) {
                                             if (sessionData.lecturers) {
-                                                // Normalize data pulled from Sheets to prevent missing attachments array
+                                                // Normalize data pulled from Sheets to prevent missing folder or attachments array
                                                 sessionData.lecturers.forEach(l => {
                                                     if (l.senaraiKursus) {
                                                         l.senaraiKursus.forEach(k => {
                                                             if (!k.attachments) k.attachments = {};
-                                                            folderSettings.value.forEach(f => {
+                                                            if (!k.folder) k.folder = {};
+                                                            
+                                                            const activeFolders = folderSettings.value && folderSettings.value.length > 0 
+                                                                ? folderSettings.value 
+                                                                : [{key: "f1"}, {key: "f2_1"}, {key: "f2_2"}, {key: "f2_3"}, {key: "f3_1"}, {key: "f3_2"}, {key: "f3_3"}, {key: "f4"}, {key: "f5_1"}, {key: "f5_2"}, {key: "f6"}, {key: "f7_1"}, {key: "f7_2"}, {key: "f8"}, {key: "f9"}, {key: "f10"}];
+                                                            
+                                                            activeFolders.forEach(f => {
                                                                 if (!k.attachments[f.key]) k.attachments[f.key] = [];
+                                                                if (k.folder[f.key] === undefined) k.folder[f.key] = 'TIDAK';
                                                             });
                                                         });
                                                     }
@@ -2016,9 +2127,15 @@ function doPost(e) {
                         });
                 };
                 
-                const pushToGoogleSheets = () => {
+                const pushToGoogleSheets = (isBackgroundSync = false) => {
                     if (!dbSettings.value.scriptUrl) return;
-                    showToast("Menyimpan perubahan ke Google Sheets bersepadu...", "info");
+                    
+                    // Kemaskini status reaktif visual untuk auto-sync
+                    syncStatus.value = "syncing";
+                    
+                    if (!isBackgroundSync) {
+                        showToast("Menyimpan perubahan ke Google Sheets bersepadu...", "info");
+                    }
                     
                     localStorage.setItem("kias_3state_lecturers_v2_" + selectedSemester.value, JSON.stringify(lecturers.value));
                     localStorage.setItem("kias_dynamic_faculties_" + selectedSemester.value, JSON.stringify(dynamicFaculties.value));
@@ -2031,10 +2148,18 @@ function doPost(e) {
                         var savedFac = localStorage.getItem("kias_dynamic_faculties_" + session);
                         var savedFol = localStorage.getItem("kias_folder_settings_" + session);
                         
+                        let parsedLec = [];
+                        let parsedFac = [];
+                        let parsedFol = [];
+                        
+                        try { if (savedLec) parsedLec = JSON.parse(savedLec); } catch (e) { }
+                        try { if (savedFac) parsedFac = JSON.parse(savedFac); } catch (e) { }
+                        try { if (savedFol) parsedFol = JSON.parse(savedFol); } catch (e) { }
+                        
                         payloadMap[session] = {
-                            lecturers: savedLec ? JSON.parse(savedLec) : [],
-                            faculties: savedFac ? JSON.parse(savedFac) : [],
-                            folderSettings: savedFol ? JSON.parse(savedFol) : []
+                            lecturers: parsedLec,
+                            faculties: parsedFac,
+                            folderSettings: parsedFol
                         };
                     });
                     
@@ -2052,19 +2177,34 @@ function doPost(e) {
                     .then(response => response.json())
                     .then(res => {
                         if (res.status === "success") {
-                            showToast("Semua rekod, akaun & lampiran fail berjaya disegerakkan di Google Drive / Sheets!", "success");
+                            syncStatus.value = "success";
+                            if (!isBackgroundSync) {
+                                showToast("Semua rekod, akaun & lampiran fail berjaya disegerakkan di Google Drive / Sheets!", "success");
+                            }
+                            
+                            // Kembalikan status lencana ke sedia selepas 3 saat
+                            setTimeout(() => {
+                                if (syncStatus.value === "success") syncStatus.value = "idle";
+                            }, 3000);
                         } else {
+                            syncStatus.value = "error";
                             showCustomAlert("Gagal Penyimpanan", "Pelayan mengembalikan ralat: " + res.message);
                         }
                     })
                     .catch(err => {
                         console.error(err);
-                        showToast("Isyarat kemaskini dihantar ke Google Drive anda.", "success");
+                        syncStatus.value = "error";
+                        showToast("Maklumat dihantar! Sila periksa Google Sheets anda untuk pengesahan fizikal.", "warning");
+                        
+                        setTimeout(() => {
+                            if (syncStatus.value === "error") syncStatus.value = "idle";
+                        }, 5000);
                     });
                 };
 
                 const disconnectDatabase = () => {
                     dbSettings.value.connected = false;
+                    syncStatus.value = "idle";
                     localStorage.setItem("kias_cloud_db_settings", JSON.stringify(dbSettings.value));
                     showToast("Sambungan Google Sheet diputuskan.", "warning");
                 };
@@ -2132,7 +2272,10 @@ function doPost(e) {
                         const parsedList = Object.values(tempMap);
                         if (parsedList.length > 0) {
                             lecturers.value = [...parsedList, ...lecturers.value];
-                            localStorage.setItem("kias_3state_lecturers_v2_" + selectedSemester.value, JSON.stringify(lecturers.value));
+                            
+                            // Lakukan Auto-Sync selepas import data CSV/Excel berjaya
+                            triggerAutoSync();
+                            
                             showToast(`Berjaya mengimport ${parsedList.length} profil pensyarah secara berkelompok!`, "success");
                             activeTab.value = "dashboard";
                             pastedExcelText.value = "";
@@ -2252,7 +2395,7 @@ function doPost(e) {
                     pullFromGoogleSheets, pushToGoogleSheets, isReadOnly, userSession, showLoginModal, loginUsername, loginPassword, handleLogout,
                     openLoginModal, isRegisterMode, loginRole, handleAuthLogin, registerData, handleAuthRegister, canEditLecturer,
                     isUploadingPDF, removeFolderAttachment, triggerFolderFileInput, handleFolderPDFUpload, getAttachmentsForFolder, setFolderStatusAndInit,
-                    registrationSuccessMsg
+                    registrationSuccessMsg, syncStatus, triggerAutoSync
                 };
             }
         }).mount('#app');
