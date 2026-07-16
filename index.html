@@ -118,7 +118,7 @@
                         
                         <div>
                             <div class="flex items-center gap-1.5">
-                                <h1 class="text-sm md:text-md font-extrabold tracking-tight uppercase">SISTEM LAPORAN FAIL KURSUS</h1>
+                                <h1 class="text-sm md:text-md font-extrabold tracking-tight uppercase">SISTEM LAPORAN PENGHANTARAN FAIL KURSUS</h1>
                             </div>
                             <p class="text-[10px] text-emerald-200 font-semibold uppercase tracking-wider">Kolej Universiti Islam Antarabangsa Sultan Ismail Petra</p>
                         </div>
@@ -316,7 +316,7 @@
                                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                     <div>
                                         <label class="block mb-1 text-xs font-bold text-slate-700 uppercase">Kod & Nama Kursus</label>
-                                        <input type="text" v-model="formData.senaraiKursus[activeFormCourseIndex].kodKursus" @input="formData.senaraiKursus[activeFormCourseIndex].kodKursus = formData.senaraiKursus[activeFormCourseIndex].kodKursus.toUpperCase()" placeholder="Contoh: MPU3122 / PIPK3163" class="w-full bg-slate-50 border border-slate-300 text-slate-900 text-xs rounded-lg p-2.5 focus:ring-emerald-500" required />
+                                        <input type="text" v-model="formData.senaraiKursus[activeFormCourseIndex].kodKursus" @input="formData.senaraiKursus[activeFormCourseIndex].kodKursus = formData.senaraiKursus[activeFormCourseIndex].kodKursus.toUpperCase()" placeholder="Contoh: ABC1234 : NAMA KURSUS" class="w-full bg-slate-50 border border-slate-300 text-slate-900 text-xs rounded-lg p-2.5 focus:ring-emerald-500" required />
                                     </div>
                                     <div>
                                         <label class="block mb-1 text-xs font-bold text-slate-700 uppercase">Catatan / Ulasan Khas</label>
@@ -379,7 +379,7 @@
                                     <th class="px-6 py-3.5 text-center text-emerald-700 bg-emerald-50/50">Lengkap Semua</th>
                                     <th class="px-6 py-3.5 text-center text-amber-700 bg-amber-50/50">Sedang Proses</th>
                                     <th class="px-6 py-3.5 text-center text-rose-700 bg-rose-50/50">Belum Hantar Langsung</th>
-                                    <th class="px-6 py-3.5 text-center">Kadar Kelulusan (%)</th>
+                                    <th class="px-6 py-3.5 text-center">Penghantaran Lengkap (%)</th>
                                     <th v-if="!isReadOnly" class="px-6 py-3.5 text-center">Tindakan</th>
                                 </tr>
                             </thead>
@@ -881,7 +881,7 @@ function createSessionSheet(ss) {
                     <p class="font-bold text-slate-300">KOLEJ UNIVERSITI ISLAM ANTARABANGSA SULTAN ISMAIL PETRA (KIAS)</p>
                     <p class="mt-0.5 text-slate-500">Nilam Puri, Jalan Kuala Krai, 15730 Kota Bharu, Kelantan.</p>
                 </div>
-                <div><p>&copy; 2026 Unit Kualiti Akademik KIAS.</p></div>
+                <div><p>&copy; 2026 Pusat Pembangunan Akademik KIAS.</p></div>
             </div>
         </footer>
     </div>
@@ -1735,7 +1735,7 @@ function createSessionSheet(ss) {
                         ]);
                         doc.autoTable({ 
                             startY: 32, 
-                            head: [["BIL", "FAKULTI PUSAT PENGAJIAN", "JUM. PENSYARAH", "SELESAI (100%)", "BELUM SELESAI", "KADAR KELULUSAN"]], 
+                            head: [["BIL", "FAKULTI PUSAT PENGAJIAN", "JUM. PENSYARAH", "SELESAI (100%)", "BELUM SELESAI", "PENGHANTARAN LENGKAP"]], 
                             body: statsRows, 
                             headStyles: { fillColor: [16, 115, 87] }, 
                             styles: { fontSize: 8 } 
